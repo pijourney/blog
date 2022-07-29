@@ -1,5 +1,5 @@
 import { ArticleLayout } from "../../../components/layout";
-import Image from "next/image";
+import ExportedImage from "next-image-export-optimizer";
 import { getCategoriesWithMetaData } from "../../../components/util";
 
 export const meta = {
@@ -43,7 +43,7 @@ A quick summary of what has ty be done is the following:
 
 ## {meta.headers[0]}
 
-<Image
+<ExportedImage
   src="/images/pidesign.svg"
   layout="responsive"
   width="100%"

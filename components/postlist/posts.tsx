@@ -1,4 +1,4 @@
-import Image from "next/image";
+import ExportedImage from "next-image-export-optimizer";
 
 import { useEffect, useState } from "react";
 import Carousel from "react-multi-carousel";
@@ -96,7 +96,7 @@ const Post = ({ folder, post }: PostProps) => {
       </span>
       <span> {post.meta.date}</span>
 
-      <Image
+      <ExportedImage
         src={post.meta.imgUrl}
         alt={post.meta.imgAlt}
         layout="fixed"

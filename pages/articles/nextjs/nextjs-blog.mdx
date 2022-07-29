@@ -1,6 +1,6 @@
 import { ArticleLayout } from "../../../components/layout";
 import { getCategoriesWithMetaData } from "../../../components/util";
-import Image from "next/image";
+import ExportedImage from "next-image-export-optimizer";
 
 export const meta = {
   title: "Creating a Nextjs Blog like this!",
@@ -308,7 +308,7 @@ export default ({ children, categories }) => (
 Thats it now if you run yarn run dev or npm run dev and open up ur browser at http://localhost:8080/articles/nextjs/nextjs-blog
 You should see something like in the picture below, notice the meta headers that have been automaticlly filled with the meta data you entered in the mdx file.
 
-<Image
+<ExportedImage
   src="/images/metaheaders.png"
   alt="Picture of browser with the current state of the article page."
   layout="responsive"

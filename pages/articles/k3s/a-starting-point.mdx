@@ -1,6 +1,6 @@
 import { ArticleLayout } from "../../../components/layout";
 import { getCategoriesWithMetaData } from "../../../components/util";
-import Image from "next/image";
+import ExportedImage from "next-image-export-optimizer";
 
 export const meta = {
   title: "The idea and architecture",
@@ -38,7 +38,7 @@ Aswell as to learn more about how to create and maintain a bare metal cluster th
 
 ## Design
 
-<Image
+<ExportedImage
   src={meta.imgUrl}
   alt={meta.imgAlt}
   layout="responsive"
