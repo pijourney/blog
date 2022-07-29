@@ -1,0 +1,61 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import Image from "next/image";
+
+export const meta = {
+  title: "The idea and architecture",
+  metaTitle: "The idea and architecture",
+  metaDesc: "What am i trying to achive?",
+  imgUrl: "/images/pidesign.svg",
+  imgAlt: "Cluster architecture",
+  date: "2022-07-12",
+  updatedAt: "2022-07-12",
+  tags: [
+    "rasberry pi",
+    "cluster",
+    "idea",
+    "architecture",
+    "ip addresses",
+    "design",
+  ],
+  headers: ["Design"],
+  slug: "a-starting-point",
+};
+
+# The idea and inital configurations
+
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+The idea was to create a small cluster of raspberry pies that serves as a easy hosting ground for various ides.
+Aswell as to learn more about how to create and maintain a bare metal cluster thus rasberry pies make an execellent starting point.
+
+## Design
+
+<Image
+  src={meta.imgUrl}
+  alt={meta.imgAlt}
+  layout="responsive"
+  width="100%"
+  height="50%"
+/>
+
+The master node will be on 192.168.0.1 with hits nodes being on the addresses:
+
+- 192.168.0.2
+- 192.168.0.3
+- 192.168.0.4
+
+On 192.168.0.5 a 4rth rasberry pi will be located which hosts docker repository along other miscellaneous utilities, read more here.
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

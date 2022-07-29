@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title><![CDATA[Pi journey articles]]></title>
+        <description><![CDATA[Pi journey articles]]></description>
+        <link>localhost:3000</link>
+        <generator>RSS for Node</generator>
+        <lastBuildDate>Mon, 25 Jul 2022 22:44:10 GMT</lastBuildDate>
+        <atom:link href="localhost:3000/rss.xml" rel="self" type="application/rss+xml"/>
+        <item>
+            <title><![CDATA[Creating a Nextjs Blog like this!]]></title>
+            <description><![CDATA[How to create a blog using nextjs, ]]></description>
+            <link>nextjs/nextjs-blog</link>
+            <guid isPermaLink="true">nextjs/nextjs-blog</guid>
+            <pubDate>Tue, 12 Jul 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[The idea and architecture]]></title>
+            <description><![CDATA[What am i trying to achive?]]></description>
+            <link>k3s/a-starting-point</link>
+            <guid isPermaLink="true">k3s/a-starting-point</guid>
+            <pubDate>Tue, 12 Jul 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Setting up the raspberry pies!]]></title>
+            <description><![CDATA[How to set up your rasberry cluster]]></description>
+            <link>k3s/installing-os-configurations</link>
+            <guid isPermaLink="true">k3s/installing-os-configurations</guid>
+            <pubDate>Tue, 12 Jul 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Equipment and where to find it!]]></title>
+            <description><![CDATA[Equipment for your first baremetal kubernetes, includes harddrives, rasberry pi, usbcables, switches and much much more!]]></description>
+            <link>equipment/raspberry-pies</link>
+            <guid isPermaLink="true">equipment/raspberry-pies</guid>
+            <pubDate>Tue, 12 Jul 2022 00:00:00 GMT</pubDate>
+        </item>
+    </channel>
+</rss>

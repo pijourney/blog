@@ -1,0 +1,1346 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import Image from "next/image";
+
+export const meta = {
+  title: "Creating a Nextjs Blog like this!",
+  metaTitle: "How to create a blog!",
+  metaDesc: "How to create a blog using nextjs, ",
+  imgUrl: "/images/blog.jpg",
+  imgAlt: "image of a blog",
+  date: "2022-07-12",
+  updatedAt: "2022-07-12",
+  tags: [
+    "Nextjs",
+    "MDX",
+    "plugins",
+    "blog reading time",
+    "navigation",
+    "code markup",
+  ],
+  headers: [
+    "What is nextjs",
+    "Setting up Nextjs with typescript",
+    "Mdx for nextjs",
+    "Layout",
+    "Tailwindcss",
+    "Navigation links from the mdx file structure",
+    "Code blocks",
+    "Sitemap and rss feed",
+  ],
+  slug: "nextjs-blog",
+};
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+# {meta.title}
+
+This will be a several part section about how to create a nextjs blog.
+Which will include the following parts.
+
+- Setting up nextjs with typescript
+- Using mdx to create blog posts.
+- layout
+- navigation links from the mdx file structure.
+- sitemap and rss feed.
+
+## {meta.headers[0]}
+
+Nextjs is a react framework that simplifies alot of the grunt work of creating a production ready and fast website.
+It includes several features such as Automatic Static Optimization, staticly generating what can be static produced at buildtime
+and serverside rendering the rest.
+Which is what we will be leveraging heavily in creating our blog.
+You can read more about nextjs [here.](https://nextjs.org/learn/foundations/about-nextjs)
+
+## {meta.headers[1]}
+
+So lets get started... Create a new folder whereever you would like your source code to reside and openup a commandpromt.
+and type the follwing to init a nextjs project.
+
+```
+npx create-next-app@latest --ts
+# or
+yarn create next-app --typescript
+# or
+npm create next-app --ts
+```
+
+Follow the intutive cmd prompt and enter a name for your project.<br/>
+For example:
+"What is your project named?": nextjs-blog <br/>
+Wait and let nextjs configure your project: Success! Created nextjs-blog at nextjs-blog
+
+## {meta.headers[2]}
+
+The next step to a fully functional blog is to setup mdx for nextjs.
+Start of by running the below command to install dependecies that will ease our handling with mdx.
+
+```
+npm install @next/mdx @mdx-js/loader @mdx-js/react
+# or
+yarn add @next/mdx @mdx-js/loader @mdx-js/react
+```
+
+Lets configure nextjs to use these dependecies by editing next.config.js
+
+```js
+const nextConfig = require("@next/mdx")({
+  extension: /\.mdx?$/,
+  //Plugins can be added here for different functionality.
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+    providerImportSource: "@mdx-js/react",
+  },
+});
+
+module.exports = nextConfig({
+  pageExtensions: ["ts", "tsx", "mdx"],
+});
+```
+
+Thats it now you should be able to do the following:
+
+1. Inside the pages folder create a new folder i called mine "articles" inside
+2. Inside articles folder create nextjs folder.
+3. Inside nextjs i created nextjs-blog.mdx.
+
+Open nextjs-blog.mdx in your favorite editor im using visual studio code and add the following code:
+
+```js
+export const meta = {
+  title: "Test articles inside nextjs folder",
+  metaTitle: "How to create a blog!",
+  metaDesc: "How to create a blog using nextjs",
+  imgUrl: "/images/blog.jpg",
+  imgAlt: "image of a blog",
+  date: "2022-07-12",
+  updatedAt: "2022-07-12",
+  tags: ["test"],
+  headers: ["Use Mdx to write blogs"],
+  slug: "nextjs-blog",
+};
+
+# This is where the title goes.
+The meta data will be used to create rss feeds / sitemap/ navigation links along with headers for the page.
+## Sub title here
+random text goes here.
+```
+
+## {meta.headers[3]}
+
+Now that we can use mdx to write our blogposts lets get started with creating the article layout a layout that can be reuse for every article.
+Mdx allows us to run javascript code in the page so lets leverage nextjs getStaticProps so that we can obtain all the articles on our webpage to create navigation.<br/>
+Create a new folder "components" in the root directory of your project. Inside the components folder create another folder called "util".
+Inside util create mdxutil.ts and paste the blow content into it.
+
+```js
+//components/util/mdxutil.ts
+import fs from "fs";
+import { MetaData, PostDetails } from "./types";
+
+export const getCategoriesWithMetaData = async (directory: string) => {
+  const folders = fs.readdirSync(directory);
+  const cats = await Promise.all(
+    folders.map(async (folder) => {
+      var folderName = directory + folder;
+      const files = fs.readdirSync(folderName);
+      const posts: PostDetails[] = await Promise.all(
+        files.map(async (fileName) => {
+          const slug = fileName.replace(".mdx", "");
+          const meta = (await require(`/pages/articles/${folder}/${fileName}`))
+            .meta as MetaData;
+          return {
+            slug,
+            meta,
+          } as PostDetails;
+        })
+      );
+
+      return { folder, posts };
+    })
+  );
+
+  return cats;
+};
+```
+
+Then create another file called types.ts and paste the following into it.
+
+```js
+//types.ts
+export type MetaData = {
+  title: string,
+  metaTitle: string,
+  metaDesc: string,
+  imgUrl: string,
+  imgAlt: string,
+  date: string,
+  updatedAt: string,
+  tags: string[],
+  headers: string[],
+  slug: string,
+};
+export type PostDetails = {
+  slug: string,
+  meta: MetaData,
+};
+
+export type PostList = {
+  folder: string,
+  posts: PostDetails[],
+};
+```
+
+This step is optional however it makes for cleaner imports for other files.
+Create anther file called index.ts inside the util folder. If skipped make sure ur imports are correct
+
+```js
+//components/util/index.ts
+export * from "./mdxutil";
+export * from "./types";
+```
+
+Inside nextjs-blog.mdx add the following code just below the meta data we added before.
+During build time nextjs will get a list that contains all our articles metadata categoriesed depending on which subfolder inside "pages/articles" it resides in.
+This is going to help us create dynamic navigation links in the next section.
+
+```js
+// pages/articles/nextjs/nextjs-blog.mdx
+import { getCategoriesWithMetaData } from "../../../components/util";
+// meta data above.
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+//MDX content below.
+```
+
+Create another folder inside the components folder called layout. Inside layout create articlelaoyt.tsx.<br/>
+Articlelayout is going to be our unified structure for each of our articles.
+Lets use that categories data to insert meta tags in our html head section that contains the title and description and so on to improve our blogs seo.
+
+```js
+//components/layout/articlelayout.tsx
+import Head from "next/head";
+import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { MetaData, PostList } from "../util";
+export type ArticleLayoutProps = {
+  children: ReactNode,
+  categories: PostList[],
+  meta: MetaData,
+};
+export const ArticleLayout = ({
+  children,
+  categories,
+  meta,
+}: ArticleLayoutProps) => {
+  const ref = useRef <HTMLDivElement> (null);
+  const [text, setText] = useState("");
+  useEffect(() => {
+    const text = ref?.current?.innerText;
+    text && setText(text);
+  }, []);
+  return (
+    <>
+      <div>
+        <ArticleHead meta={meta} />
+        <div>Navigation goes here</div>
+        <article
+          ref={ref}
+          id="article"
+          className="rounded-xl p-5 max-w-none relative"
+        >
+          {children}
+        </article>
+        <div>Table of content goes here</div>
+      </div>
+    </>
+  );
+};
+
+export const ArticleHead: FC<{ meta: MetaData }> = ({ meta }) => {
+  return (
+    <Head>
+      <title>{meta.metaTitle}</title>
+      <meta name="description" content={meta.metaDesc} />
+      <meta name="keywords" content={meta.tags.toString()} />
+    </Head>
+  );
+};
+```
+
+This step is optional however it makes for cleaner imports for other files.
+Create anther file called index.ts inside the util folder. If skipped make sure ur imports are correct
+
+```js
+//components/layout/index.ts
+export * from "./articlelayout";
+```
+
+Articlelayout contains two components "articlehead" and "articlelayout". The articlehead is where we use the meta data to insert different html meta tags in each page header.
+While the articlelayout will serve as our template around each article. Here we will add navigation, table of content, read time component etc later.
+"article children article" is where our mdx file will be rendered as children.
+So lets open up nexjs-blog.mdx again and import articlelayout and at the bottom export the mdx file as shown below.
+
+```js
+// pages/articles/nextjs/nextjs-blog.mdx
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+//At the bottom add:
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);
+```
+
+Thats it now if you run yarn run dev or npm run dev and open up ur browser at http://localhost:8080/articles/nextjs/nextjs-blog
+You should see something like in the picture below, notice the meta headers that have been automaticlly filled with the meta data you entered in the mdx file.
+
+<Image
+  src="/images/metaheaders.png"
+  alt="Picture of browser with the current state of the article page."
+  layout="responsive"
+  width="800px"
+  height="200px"
+/>
+
+## {meta.headers[4]}
+
+For this tutorial im going to provide a very simple styling schema which you can follow along or completely skip if you want to create your own design/css.
+I'm going to use tailwind which is quite helpfull to speed up development. Only real negative with tailwind is that the classNames can become quite large.
+Lets start off by installing tailwind:
+
+```js
+npm install -D tailwindcss postcss autoprefixer
+//or
+yarn add -D tailwindcss postcss autoprefixer
+//Wait for the installing process then init tailwind:
+npx tailwindcss init -p
+//Install prose to style our articles typography.
+npm install -D @tailwindcss/typography
+#or
+yarn add -D @tailwindcss/typography
+```
+
+Open up your global css file, for nextjs its inside styles/global.css and add the following lines to it at the top.
+If you dont have a file create it and import it inside \_app.ts
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+For this tutorial we will use a preconfigured tailwind theme however you can configure your own in the tailwind.config.js
+First we need to add some custom grid layouts for tailwind add the following to tailwind.config.js.
+
+```js
+//tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [],
+  theme: {
+    gridTemplateColumns: {
+      mobile: "1fr",
+      tablet: "1fr 0.3fr",
+      full: "0.3fr 1fr 0.3fr",
+    },
+    extend: {},
+  },
+  plugins: [require("@tailwindcss/typography")],
+};
+```
+
+So one part about writing good articles is the typeography, tailwind has something called prose that we installed before which will take care of the styling of our articles.
+Now we can add the following classNames to the outer div in the articlelayout style the article div with some basic styling.
+This styling will create a responsive grid design:
+
+1. **mobile** = single column for the article with a popout navigation.
+2. **tablet** = large column - small side column - for a table of contents.
+3. **large screen** = three column layout for - navigation - article content - table of contents.
+
+It will also use prose with prose-slate theme to style our articles text/list/link elements etc.
+You can go ahead and create your own theme or use one of the precoinfgured themes that tailwind provides, you can read more [here.](https://tailwindcss.com/docs/typography-plugin).
+
+```js
+//components/layout/articlelayout.tsx
+imports etc.
+<>
+      <div className="w-full grid grid-cols-mobile md:grid-cols-tablet lg:grid-cols-full gap-4 p-5 items-start prose prose-lg prose-slate max-w-none">
+        <ArticleHead meta={meta} />
+        <div className="lg:relative lg:block lg:sticky lg:left-2  capitalize text-xl overflow-y-hidden top-4 overflow-x-hidden rounded-xl p-5 absolute top-0 right-0">
+          Navigation goes here
+        </div>
+        <article
+          ref={ref}
+          id="article"
+          className="rounded-xl p-5 prose  prose-custom prose-lg max-w-none relative"
+        >
+          {children}
+        </article>
+        <div className="rounded-xl p-5 hidden md:flex flex-wrap basis-full flex-col gap-y-2 sticky top-4">
+          Table of content goes here
+        </div>
+      </div>
+</>
+rest...
+```
+
+Thats it for now the next section will add navigation and table of contents to your article design which will make it look alot better.
+
+## {meta.headers[5]}
+
+In this section i will go over how to create a table of content for each page that we are currently on which includes all the headers.
+Aswell as the dynamiclly created navigation for the different articles we have on our page.
+The navigation menu takes its structure from the map structure in which the mdx files are inside. 
+However this leaves the ordering of the navigation links to the OS which i dont like, thus i added functionallity to order the menus that you need to.
+And the once left out will be ordered by the map structure.
+
+### Navigation
+
+Create a new folder inside components called navigation and create a new file called hamburger.tsx.
+This file will be the hamburger icon for when the website is run in a tablet or smaller device.
+
+```js
+//components/navigation/hamburger.tsx
+export interface HamburgerProps {
+  onClick: Function;
+  className?: string;
+}
+export const Hamburger = ({ className, onClick }: HamburgerProps) => {
+  return (
+    <div
+      className={` space-y-2 z-50 ${className}`}
+      onClick={(_) => {
+        onClick();
+      }}
+    >
+      <span className="block h-0.5 w-8 animate-pulse bg-slate-900"></span>
+      <span className="block h-0.5 w-8 animate-pulse bg-slate-900"></span>
+      <span className="block h-0.5 w-8 animate-pulse bg-slate-900"></span>
+    </div>
+  );
+};
+```
+
+For the MenuItems we are going to need a svg, this is a neat trick to use svgs with nextjs.
+Create a folder called svg inside the components folder. Inside it create chevronright.tsx
+The svg can be found on for example [radix](https://deploy-preview-31--eager-lewin-57feec.netlify.app/icons/) you can copy and paste any svg like this and then use them as components instead.
+
+```js
+//components/svg/chevronright.tsx
+import React from "react";
+export interface ChevronRight {
+  className?: string;
+}
+export const ChevronRight = ({ className }: ChevronRight) => {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 15 15"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M6.1584 3.13508C6.35985 2.94621 6.67627 2.95642 6.86514 3.15788L10.6151 7.15788C10.7954 7.3502 10.7954 7.64949 10.6151 7.84182L6.86514 11.8418C6.67627 12.0433 6.35985 12.0535 6.1584 11.8646C5.95694 11.6757 5.94673 11.3593 6.1356 11.1579L9.565 7.49985L6.1356 3.84182C5.94673 3.64036 5.95694 3.32394 6.1584 3.13508Z"
+        fill="currentColor"
+        fillRule="evenodd"
+        clipRule="evenodd"
+      ></path>
+    </svg>
+  );
+};
+```
+
+Then create index.ts inside this the components/svg foilder to export all the icons easier.
+
+```js
+//components/svg/index.ts
+export * from "./chevronright";
+```
+
+Create another file called menuitem.tsx inside the navigation folder. This file is the acctual navigations item.
+
+```js
+//components/navigation/menuitem.tsx
+import { useState } from "react";
+import { ChevronRight } from "../svgs";
+import { PostDetails } from "../util";
+import { SubMenu } from "./submenu";
+
+export interface MenuProps {
+  name: string;
+  posts: PostDetails[];
+  currentRoute: string[];
+  defaultOpen: boolean;
+}
+export const MenuItem = ({
+  name,
+  posts,
+  currentRoute,
+  defaultOpen,
+}: MenuProps) => {
+  const [open, setOpen] = useState <boolean> (defaultOpen); 
+  return (
+    <li onClick={(e) => setOpen(!open)}>
+      <label className="hover:text-emerald-600 flex cursor-pointer mt-2.5 overflow-hidden snap-start text-ellipsis transition-colors justify-between justify-items-center">
+        {name}
+        {<ChevronRight className={open ? " rotate-90" : ""} />}
+      </label>
+      {posts && (
+        <SubMenu
+          name={name}
+          posts={posts}
+          open={open}
+          currentSubRoute={currentRoute[3]}
+        />
+      )}
+    </li>
+  );
+};
+```
+
+Create another file called submenu.tsx inside the navigation folder. This will represent a submenu containing menuitems for a category.
+
+```js
+//components/navigation/submenu.tsx
+import Link from "next/link";
+import { PostDetails } from "../util";
+import { MenuProps } from "./menuitem";
+
+interface SubMenuProps
+  extends Omit<Omit<MenuProps, "currentRoute">, "defaultOpen"> {
+  open: boolean;
+  currentSubRoute: string;
+}
+export const SubMenu = ({
+  name,
+  posts,
+  open,
+  currentSubRoute,
+}: SubMenuProps) => {
+  return (
+    <nav className={!open ? "invisible max-h-0" : "pl-4"}>
+      <ul>
+        {posts.map((post: PostDetails, i: number) => {
+        const current = currentSubRoute === post.meta.slug;
+        return (
+          <Link href={"/articles/" + name + "/" + post.slug} key={i}>
+            <li key={name + "-" + post.slug}>
+              <label
+                className={current ? " text-emerald-600" : "hover:emerald-600"}
+              >
+                {post.meta.metaTitle}
+              </label>
+            </li>
+          </Link>
+        );
+      })}
+    </ul>
+    </nav>
+  );
+};
+```
+
+Create a folder called hooks at the root of the project. Inside it create a file called useOnClickOutisde.ts.
+This hook will help us determine once a click is outside of a component. In our case we need it for the hamburger menu,
+so that the navigation can be closed if the user presses outside of the navigation.
+
+```js
+//hooks/useOnClickOutside.ts
+import { RefObject, useEffect } from "react";
+
+type Handler = (event: MouseEvent) => void;
+
+export function useOnClickOutside<T extends HTMLElement = HTMLElement>(
+  ref: RefObject<T>,
+  handler: Handler
+): void {
+  useEffect(() => {
+    const listener = (event: any) => {
+      const el = ref?.current;
+      // Do nothing if clicking ref's element or descendent elements
+      if (!el || el.contains(event.target as Node)) {
+        return;
+      }
+
+      handler(event);
+    };
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  });
+}
+```
+
+Then create index.ts inside this the hooks foilder to export all the hooks easier.
+
+```js
+//hooks/index.ts
+export * from "./useOnClickOutside";
+```
+
+Create another file called navigation.tsx inside the navigation folder. This will represent the acctual navigation menu.
+
+```js
+//components/navigation/navigation.tsx
+import { useRouter } from "next/router";
+import { useRef, useState } from "react";
+import { useOnClickOutside } from "../../hooks";
+import { PostList } from "../util";
+import { Hamburger } from "./hamburger";
+import { MenuItem } from "./menuitem";
+
+const getAllNavs = (categories: PostList[], currentRoute: string[]) => {
+  return (
+    <>
+      {categories.map(({ folder, posts }: PostList, y: number) => {
+        return (
+          <MenuItem
+            name={folder}
+            posts={posts}
+            currentRoute={currentRoute}
+            defaultOpen={currentRoute[2] === folder}
+            key={y}
+          />
+        );
+      })}
+    </>
+  );
+};
+export type NavProps = {
+  categories: PostList[],
+};
+export const Navigation = ({ categories }: NavProps) => {
+  const router = useRouter();
+  const ref = useRef <HTMLElement> (null);
+  const [open, setOpen] = useState <boolean> (false); 
+  const toggleState = () => {
+    setOpen(!open);
+  };
+
+  useOnClickOutside(ref, () => setOpen(false));
+
+  const currentRoute = router.pathname;
+  return (
+    <>
+      <Hamburger
+        className={`${!open ? "absolute" : "hidden"} top-8 right-5 lg:hidden`}
+        onClick={toggleState}
+      />
+      <nav
+        ref={ref}
+        className={`lg:relative  lg:block lg:sticky lg:left-2  capitalize text-xl overflow-y-hidden top-4 overflow-x-hidden rounded-xl p-5 absolute top-0 right-0 ${
+          open ? "visible h-full z-10" : "hidden"
+        }`}
+      >
+        {open && (
+          <svg
+            onClick={() => setOpen(false)}
+            className="h-8 w-8 text-amber-600 ml-auto "
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        )}
+        <ul className="relative list-none mr-1.5 pl-3.5 pr-3.5">
+          {getAllNavs(categories, currentRoute.split("/"))}{" "}
+        </ul>
+      </nav>
+    </>
+  );
+};
+```
+
+The final step is to acctually use the navigation component. Open up components/layout/articleLayout.tsx.
+Exchange `<div className="lg:relative lg:block lg:sticky lg:left-2 capitalize text-xl overflow-y-hidden top-4 overflow-x-hidden rounded-xl p-5 absolute top-0 right-0">Navigation goes here</div>`
+for `<Navigation categories={categories} />` Also dont for get to import the navigation component.
+
+The last part is optional, currently we have a navigation menu that gets the ordering from the filesystem of the operating system that builds the project.
+Which works fine unless you need to order the navigation links, which in most cases you probably do.
+
+To get the power to be able to order the navlinks and the subnavlinks create a new file in components/navigation, i called it navigationOrder.ts.
+```js 
+//components/navigation/navigationOrder.ts
+export type NavigationOrderType = {
+  category: string;
+  orderArticleList: string[];
+};
+//This is your list, where you can add categories and the articles sorted in that category.
+const navigationOrder: NavigationOrderType[] = [
+  {
+    category: "nextjs",
+    orderArticleList: ["nextjs-blog"],
+  },
+  {
+    category: "test",
+    orderArticleList: [],
+  },
+];
+//Finds a category, returns infinity (places navigation at the bottom) if not found and the order if its found.
+export const findTopNavigation = (category: string) => {
+  const foundIndex = navigationOrder.findIndex(function (obj) {
+    return obj.category === category;
+  });
+  return foundIndex === -1 ? Infinity : foundIndex;
+};
+//Finds a submenu inside a category, returns infinity (places navigation at the bottom) if not found and the order if its found.
+export const findSubNavigation = (category: string, articleName: string) => {
+  const foundIndex = navigationOrder.findIndex((obj) => {
+    return obj.category === category;
+  });
+  if (foundIndex != -1) {
+    const subIndex = navigationOrder[foundIndex].orderArticleList.findIndex(
+      (article) => {
+        return article === articleName.replace(".mdx", "");
+      }
+    );
+    return subIndex === -1 ? Infinity : subIndex;
+  }
+  return Infinity;
+};
+```
+Now we have  to sort the categories and its submenus, by using thses two functions when we acctuly grab our mdx files from the file system.
+Open up mdxUtil.ts inside components/util and update the function "getCategoriesWithMetaData" as below see comments for changes.
+```js
+export const getCategoriesWithMetaData = async (directory: string) => {
+  const folders = fs.readdirSync(directory);
+  folders.sort((a, b) => findTopNavigation(a) - findTopNavigation(b)); // sorts the categories
+  const cats = await Promise.all(
+    folders.map(async (folder) => {
+      var folderName = directory + folder;
+      const files = fs.readdirSync(folderName);
+      files.sort(
+        (a, b) => findSubNavigation(folder, a) - findSubNavigation(folder, b) 
+      ); // sorts the submenus.
+      const posts: PostDetails[] = await Promise.all(
+        files.map(async (fileName) => {
+          const slug = fileName.replace(".mdx", "");
+          const meta = (await require(`/pages/articles/${folder}/${fileName}`))
+            .meta as MetaData;
+          return {
+            slug,
+            meta,
+          } as PostDetails;
+        })
+      );
+
+      return { folder, posts };
+    })
+  );
+
+  return cats;
+};
+```
+Thats  it now you have the power to order your navigation links anyway you want it, and those that you leave out will still show up and remain the filestructure order from before.
+
+### Table of content
+
+For the table of content we want to highlight which part of the article the user is currently reading therefore we need another hook. 
+This hook decides whether a element is inside the top 20% of the screen by levering the [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
+Inside /hooks folder create useIntersection.ts.
+
+```js
+//hooks/useIntersection.ts
+import { useEffect, useState } from "react";
+const config = {
+  root: null,
+  rootMargin: "5% 0px -80%", // toggle true when element is at top of page.
+  threshold: 0,
+};
+export const useIntersection = (element: HTMLElement | null) => {
+  const [isVisible, setState] = useState(-1);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setState(1);
+        return;
+      }
+      if (entry.boundingClientRect.top > 0) {
+        setState(-1); // do things if below
+      } else {
+        setState(0);
+      }
+    }, config);
+    if (element) {
+      element && observer.observe(element);
+      return () => element && observer.unobserve(element);
+    }
+  }, [element]);
+
+  return isVisible;
+};
+```
+
+Open up the index.ts inside hooks and add the following line to export the new hook `export * from "./useIntersection";`
+
+Create another folder inside componets name it tableofcontent inside that map create tableofcontent.tsx.
+
+```js
+//components/tableofcontent/tableofcontent.tsx
+import Link from "next/link";
+import { FC, useEffect, useState } from "react";
+import { useIntersection } from "../../hooks";
+import { MetaData } from "../util";
+type tableOfContentProps = {
+  meta: MetaData;
+  articleHasScroll: boolean;
+};
+
+   
+const getClassNames = (
+  inViewPort: number,
+  activeAnchor: number,
+  linkNumber: number
+) => {
+  let classNames = "hover:text-emerald-600 text-xl";
+  //Above.
+  if (inViewPort === 0 || activeAnchor > linkNumber) {
+    classNames = classNames + " text-amber-600";
+  }
+  if (inViewPort === 1 || activeAnchor === linkNumber) {
+    classNames = "text-emerald-600 text-xl";
+  }
+  return classNames;
+};
+
+const AnchorLink: FC<{
+  header: string;
+  activeAnchor: number;
+   setActiveAnchor: Function;
+  linkNumber: number;
+}> = ({ header, activeAnchor, setActiveAnchor, linkNumber }) => {
+  let inViewport = -1;
+  let headerElement = null;
+  if (typeof window !== "undefined")
+    headerElement = document.getElementById(
+      header.replaceAll(" ", "-").toLowerCase()
+    );
+  inViewport = useIntersection(headerElement);
+ useEffect(() => {
+    if (inViewport === 1) {
+      setActiveAnchor(linkNumber);
+    }
+   }, [inViewport, linkNumber, setActiveAnchor]);
+
+  const link = header.replaceAll(" ", "-").toLowerCase();
+  return (
+    <Link href={"#" + link}>
+      <a className={getClassNames(inViewport, activeAnchor, linkNumber)}>
+        {header}
+      </a>
+    </Link>
+  );
+};
+export const TableOfContent = ({
+  meta,
+  articleHasScroll,
+}: tableOfContentProps) => {
+  const [activeAnchor, setActiveAnchor] = useState<number>(0);
+  const getEveryLink = (
+    headers: string[],
+    activeAnchor: number,
+    setActiveAnchor: Function
+  ) => {
+    return (
+      headers &&
+      headers.map((header, i) => {
+        return (
+          <AnchorLink
+            key={i}
+            header={header}
+            activeAnchor={articleHasScroll ? activeAnchor : -1}
+            setActiveAnchor={setActiveAnchor}
+            linkNumber={i}
+          />
+        );
+      })
+    );
+  };
+
+  return (
+    <div className="rounded-xl p-5 hidden md:flex flex-wrap basis-full flex-col gap-y-2 sticky top-4">
+      <h3 className="text-2xl mb-3">Table of content</h3>
+      {getEveryLink(meta.headers, activeAnchor, setActiveAnchor)}
+    </div>
+  );
+};
+```
+
+Create index.ts inside components/tableofcontets to enable easier imports.
+
+```js
+//components/tableofcontet/index.ts
+export * from "./tableofcontent";
+```
+Theres one more thing we need to do and thats to create a mdxComponent to tell MDX to render our h2 headers with a anchor tag id.
+Create a new file in /components/mdxComponents, name it h2.tsx.
+```js 
+// /components/mdxComponents/h2.tsx
+export function H2({ children }: any) {
+  const id = children.replaceAll(" ", "-").toLowerCase();
+  return <h2 id={id}>{children}</h2>;
+}
+
+```
+Dont for get to add the h2 export to our index.ts inside the mdxcomponents folder.
+```js
+//components/mdxcomponents/index.ts
+export * from "./pre";
+export * from "./h2";
+
+```
+Add the h2 to our components list in components/layout/articlelayout.tsx and then use the table of components inside components/layout/articlelayout.tsx.
+Once thats done our table of content should fill up with the subtitles from the meta data of each article.
+Your components/layout/articlelayout.tsx should look like this:
+
+```js
+//components/layout/articlelayout.tsx
+import { MDXProvider } from "@mdx-js/react";
+import Head from "next/head";
+import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { Pre } from "../mdxcomponents";
+import { Navigation } from "../navigation/navigation";
+import { TableOfContent } from "../tableofcontent";
+import { MetaData, PostList } from "../util";
+
+const components = {
+  pre: Pre,
+  h2: H2,
+
+};
+export type ArticleLayoutProps = {
+  children: ReactNode;
+  categories: PostList[];
+  meta: MetaData;
+};
+export const ArticleLayout = ({
+  children,
+  categories,
+  meta,
+}: ArticleLayoutProps) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const [text, setText] = useState("");
+  const [articleHasScroll, setArticleHasScroll] = useState<boolean>(false);
+  const elementBiggerThanViewport = (rect: DOMRect) => {
+    return (
+      rect.bottom >=
+      (window.innerHeight || document.documentElement.clientHeight)
+    );
+  };
+  useEffect(() => {
+    if (ref && ref.current) {
+      const text = ref.current.innerText;
+      text && setText(text);
+      const rect = ref.current.getBoundingClientRect();
+      const showTableOfContentHighlight = elementBiggerThanViewport(rect);
+      if (showTableOfContentHighlight)
+        setArticleHasScroll(showTableOfContentHighlight);
+    }
+  }, []);
+  return (
+    <>
+      <div className="w-full grid grid-cols-mobile md:grid-cols-tablet lg:grid-cols-full gap-4 p-5 items-start prose prose-lg prose-slate max-w-none">
+        <ArticleHead meta={meta} />
+        <Navigation categories={categories} />
+        <MDXProvider components={components}>
+          <article
+            ref={ref}
+            id="article"
+            className="rounded-xl p-5 prose  prose-custom prose-lg max-w-none relative"
+          >
+            {children}
+          </article>
+        </MDXProvider>
+        <TableOfContent meta={meta} articleHasScroll={articleHasScroll} />
+      </div>
+    </>
+  );
+};
+
+export const ArticleHead: FC<{ meta: MetaData }> = ({ meta }) => {
+  return (
+    <Head>
+      <title>{meta.metaTitle}</title>
+      <meta name="description" content={meta.metaDesc} />
+      <meta name="keywords" content={meta.tags.toString()} />
+    </Head>
+  );
+};
+
+```
+
+## {meta.headers[6]}
+
+One of the final parts atleast for a tech blog is to be able to do code sections. Similar to the once i use in this article post.
+Since we are using next/mdx we can just use a remark plugin called prism which will do the heavy lifing for us.
+Go ahead and install that plugin by running the below command in ur cmd.
+
+```
+//by npm
+npm install remark-prism
+//by yarn
+yarn add remark-prism
+```
+
+Then head over to [PrismJs-Themes](https://github.com/PrismJS/prism-themes) and select a theme that fits your needs.
+I choose this one [pojoaque](https://github.com/PrismJS/prism-themes/blob/master/themes/prism-pojoaque.css).
+Just copy the whole file into ur global.css file and thats it.
+The last thing we have to do is to make @next/mdx use the prism plugin.
+Open next.config.js and add the plugin to the plugin list like below.
+
+```js
+/** @type {import('next').NextConfig} */
+
+const nextConfig = require("@next/mdx")({
+  extension: /\.mdx?$/,
+  //Plugins can be added here for different functionality.
+  options: {
+    remarkPlugins: [require("remark-prism")],
+    rehypePlugins: [],
+    providerImportSource: "@mdx-js/react",
+  },
+  reactStrictMode: true,
+  swcMinify: true,
+});
+
+module.exports = nextConfig({
+  pageExtensions: ["ts", "tsx", "mdx"],
+});
+```
+
+Now you can use the code highlighting by writing in mdx files something like this
+
+````js
+//by npm
+// remove the // in ur mdx.
+//``` You can specifify language here for example js.
+//Code goes in here.
+//```
+````
+
+Now if your like me you would probably like to alter functionallity of the code sections. This can easily be done by using MDXProvider and providing our own
+PRE html element.
+First of lets create a pre component which has copying functionallity for our code block.
+Create a folder inside components called mdxcomponents and inside that create a file called pre.tsx
+
+```js
+//components/mdxcomponents/pre.tsx
+import { useRef, useState } from "react";
+
+export const Pre = (props: any) => {
+  const textInput = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const onEnter = () => {
+    setHovered(true);
+  };
+  const onExit = () => {
+    setHovered(false);
+    setCopied(false);
+  };
+  const onCopy = () => {
+    setCopied(true);
+    if (textInput.current?.textContent)
+      navigator.clipboard.writeText(textInput.current.textContent);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+  return (
+    <div
+      ref={textInput}
+      onMouseEnter={onEnter}
+      onMouseLeave={onExit}
+      className="relative not-prose p-5 rounded-xl bg-slate-900"
+    >
+      {hovered && (
+        <button
+          aria-label="Copy code"
+          type="button"
+          className={`absolute right-2 top-2 h-8 w-8 rounded border-2  p-1  ${
+            copied
+              ? "border-green-900 focus:border-green-900 focus:outline-none"
+              : "border-amber-900"
+          }`}
+          onClick={onCopy}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            fill="none"
+            className={copied ? "text-amber-900" : "text-amber-900"}
+          >
+            {copied ? (
+              <>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </>
+            ) : (
+              <>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </>
+            )}
+          </svg>
+        </button>
+      )}
+      <pre>{props.children}</pre>
+    </div>
+  );
+};
+```
+
+Now for import simplification create index.ts inside the folder mdxcomponents
+
+```js
+//components/mdxcomponents/index.ts
+export * from "./pre";
+```
+
+Next lets provide the MDXProvider with our own custom component.
+So openup articlelayout.tsx and wrap the article html element with a MDXProvider component like below. Aswell as declaring our components to provide.
+
+```js
+// components/layout/articlelayout.tsx
+import { MDXProvider } from "@mdx-js/react";
+import { Pre } from "../mdxcomponents";
+
+const components = {
+  pre: Pre,
+
+};
+... the rest of code is here.
+
+ <MDXProvider components={components}>
+  <article
+    ref={ref}
+    id="article"
+    className="  rounded-xl p-5 prose  prose-custom prose-lg max-w-none relative"
+  >
+    {children}
+  </article>
+</MDXProvider>
+... more code below
+```
+
+Thats it our code sections should show up something like the one above with a copy button.
+
+## {meta.headers[7]}
+
+The final step in this nextjs blog guide is to craete rss feed and a sitemap.
+For the rss feed we will use a package install the RSS pacakge by running the following:
+
+```
+npm install rss
+npm install @types/rss -D
+//or
+yarn add rss
+yarn add @types/rss -D
+```
+
+Now lets go ahead and create the generation functions.
+Create a new file inside components/util and name it generators.ts.
+
+```js
+//components/util/generators.ts
+import { readdirSync, writeFileSync } from "fs";
+import RSS from "rss";
+import { PostDetails, PostList } from "./types";
+
+const baseUrl = process.env.SITE_URL || "http://localhost:3000";
+const siteMapUrl = "public/sitemap.xml";
+const robotsText = `Sitemap: ${baseUrl}/${siteMapUrl} \nUser-agent: * \nAllow: /* \nDisallow: /api/*`;
+
+export const generateSiteMap = async (articles: PostList[]) => {
+  const nonArticlePages = readdirSync("./pages").filter((staticPage) => {
+    return ![
+      "_app.tsx",
+      "_document.tsx",
+      "_error.tsx",
+      "sitemap.xml.js",
+      "api",
+      "articles",
+    ].includes(staticPage);
+  });
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            ${nonArticlePages
+              .map((page) => {
+                const url = getUrl(page);
+                return returnXmlUrl(url, new Date(), "monthly", 1.0);
+              })
+              .join("")}
+              ${articles
+                .map(({ folder, posts }) => {
+                  return posts.map((post: PostDetails) => {
+                    const url = folder + "/" + post.slug;
+                    return returnXmlUrl(
+                      url,
+                      new Date(post.meta.updatedAt),
+                      "monthly",
+                      0.9
+                    );
+                  });
+                })
+                .join("")}
+        </urlset>`;
+  writeFileSync(siteMapUrl, sitemap);
+  writeFileSync("public/robots.txt", robotsText);
+
+};
+
+export const generateRssFeed = (articles: PostList[]) => {
+  const feed = new RSS({
+    title: "Pi journey articles",
+    feed_url: "localhost:3000/rss.xml",
+    site_url: "localhost:3000",
+  });
+  articles.map(({ folder, posts }) => {
+    return posts.forEach((post: PostDetails) => {
+      const url = folder + "/" + post.slug;
+      const meta = post.meta;
+      feed.item({
+        title: meta.title,
+        description: meta.metaDesc,
+        url: url,
+        date: meta.date,
+      });
+    });
+  });
+  writeFileSync("./public/rss.xml", feed.xml({ indent: true }));
+};
+
+const getUrl = (page: string) => {
+  const path = page
+    .replace("pages/", "/")
+    .replace(".tsx", "")
+    .replace("index", "");
+  const route = path === "/index" ? "" : path;
+  return `${baseUrl}${route}`;
+};
+
+const returnXmlUrl = (
+  url: string,
+  date: Date,
+  change: string,
+  priority: number
+) => {
+  return `<url>
+            <loc>${url}</loc>
+            <lastmod>${date.toISOString()}</lastmod>
+            <changefreq>${change}</changefreq>
+            <priority>${priority}</priority>
+        </url>
+    `;
+};
+```
+
+The file contains two helper functions returnXmlUrl which builds up the sitemap xml for each of our articles and getUrl which will build the acctual url for a page that is not an article.
+Then there are the two exported function generateSiteMap and generateRssFeed.
+The generateSiteMap works like this:
+
+- Look inside the folder pages exclude articles folder and everything thats not relevant.
+- Then create a sitemap from all the nonArticlePages and all the categories ( the meta data we read in from all the files inside articles)
+- For each of those create a sitemap entry
+- Then write all the entries to a file inside the public folder called sitemap.xml
+- Finally create a robots.txt in the public folder linking to our sitemap
+
+The logic for generateRssFeed logic is simple and uses the RSS package to simplify the process.
+The feed will simplify for others to know whenever there are any new articles out on your website.
+
+The two functions should be run at buildtime i ran into a world of trouble when trying to do this as a post/prebuild script.
+Thus i opted to do it by using nextjs getStaticProps() function which is ran during buildtime to generate static sites.
+Lets rewrite our index.tsx to create a landing page.
+Remove index.tsx located inside the pages folder and create a new index.mdx.
+
+```js
+//pages/index.tsx
+import { NextPage } from "next";
+import { Navigation } from "../components/navigation/navigation";
+import { getCategoriesWithMetaData, PostList } from "../components/util";
+import {
+  generateRssFeed,
+  generateSiteMap,
+} from "../components/util/generators";
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  generateSiteMap(categories);
+  generateRssFeed(categories);
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+const Home: NextPage<{ categories: PostList[] }> = ({ categories }) => {
+  return (
+    <div className="w-full grid grid-cols-mobile md:grid-cols-tablet lg:grid-cols-full gap-4 p-5 items-start">
+      <Navigation categories={categories} />
+      <article className=" rounded-xl p-5 prose  prose-custom prose-lg max-w-none">
+        <h1>Welcome to the blog!</h1>
+      </article>
+      <div className=" rounded-xl p-5 hidden md:block"> </div>
+    </div>
+  );
+};
+
+export default Home;
+```
+
+Thats it we should now have a fully functional nextjs blog.
+Commands:
+- yarn run build - builds your website
+- yarn run start - serves the built website.
+- yarn run dev - runs dev server.
+
+Run yarn run build, wait while its building. Once finished a sitemap and a rss feed should have been generated automaticlly based on the meta data from your articles.
+To check whether you were successful or not go ahead and run the build command.
+Once its built run yarn run start or npm run start.
+Navigate to http://localhost:3000/rss.xml and http://localhost:3000/sitemap.xml
+Hopefull you found a xml document inside your browser window!
+Thats it you now have a functional blog written in nextjs.
+Now run along and write your next blog post 😄
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

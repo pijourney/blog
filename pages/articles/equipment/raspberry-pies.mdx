@@ -1,0 +1,73 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+
+export const meta = {
+  title: "Equipment and where to find it!",
+  metaTitle: "Equipment and where to find it!",
+  metaDesc:
+    "Equipment for your first baremetal kubernetes, includes harddrives, rasberry pi, usbcables, switches and much much more!",
+  imgUrl: "/images/rasberry.jpg",
+  imgAlt: "image of cluster equpiment!",
+  date: "2022-07-12",
+  updatedAt: "2022-07-12",
+  tags: [
+    "raspberry pi",
+    "switch",
+    "usbcables",
+    "anker powersupply",
+    " harddrives",
+    "usb harddrive sticks",
+    "structural container",
+  ],
+  headers: ["Hardware", "Costs", "Where to find it"],
+  slug: "raspberry-pies",
+};
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+# {meta.title}
+
+This is a short description of what has been used in the project, continuasly updated with links to where i've purchased things.
+
+## {meta.headers[0]}
+
+- 4 rasberry pies 8gb
+- 4x sanddisk 32gb usb harddrive sticks.
+- Seagate expansion HDD 4TB
+- 4 usb cables 0.5 meter ( could probably go for 0.25M or 0.125M)
+- 4 ethernet cables (bought a role cause i have tools at home)
+- anker usb loader 8 slot.
+- switch Name here.
+- rasberry pi acrylic case 4 pieces. includes fans + heatsinks
+
+## {meta.headers[1]}
+
+The total cost came in around 500 dollars, quite a lot however there are modifications that can be made to reduce the price!\
+For example one does not need ethernet connecton since raspberry pi comes with bluetooth and can easily be setup.
+This would also remove the need for a switch.
+
+Anothor cutback is to go for the 4gb rasberry pies instead. Which can be found here
+
+## {meta.headers[2]}
+
+Everything can be found on amazon or your local hardware store!
+If you want to help me out use the links above in the hardware section 🤓
+
+CODE SECTION SAVE IT
+
+```js
+const year = "2001";
+const movie = "Shrek";
+```
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

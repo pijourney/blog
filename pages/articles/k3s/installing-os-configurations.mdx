@@ -1,0 +1,71 @@
+import { ArticleLayout } from "../../../components/layout";
+import Image from "next/image";
+import { getCategoriesWithMetaData } from "../../../components/util";
+
+export const meta = {
+  title: "Setting up the raspberry pies!",
+  metaTitle: "Setting up the raspberry pies!",
+  metaDesc: "How to set up your rasberry cluster",
+  imgUrl: "/images/rasberry.jpg",
+  imgAlt: "image of cluster equpiment!",
+  date: "2022-07-12",
+  updatedAt: "2022-07-12",
+  tags: ["starting", "research", "software"],
+  headers: [
+    "Choosing and installing an OS",
+    "Inital configurations",
+    "Setting up master",
+    "Setting up each node",
+  ],
+  slug: "installing-os-configuratons",
+};
+
+# {meta.title}
+
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+So after understanding what we are going to archive lts get started by setting up the rasberry pies.
+A quick summary of what has ty be done is the following:
+
+- Installing an operating system on each of the sub sticks.
+- Booting each rasberry pi from a stick.
+- Configuring and installing k3s on each rasberry pi.
+- Setup the master
+- Setup each node.
+- Setting up the harddrive for the cluster
+
+## {meta.headers[0]}
+
+<Image
+  src="/images/pidesign.svg"
+  layout="responsive"
+  width="100%"
+  height="50%"
+/>
+
+The master node will be on 192.168.0.1 with hits nodes being on the addresses:
+
+- 192.168.0.2
+- 192.168.0.3
+- 192.168.0.4
+
+On 192.168.0.5 a 4rth rasberry pi will be located which hosts docker repository along other miscellaneous utilities, read more here.
+
+## {meta.headers[1]}
+
+## {meta.headers[2]}
+
+## {meta.headers[3]}
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);
