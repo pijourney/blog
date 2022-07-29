@@ -1,7 +1,7 @@
 import { readdirSync, writeFileSync } from "fs";
 import RSS from "rss";
 import { PostDetails, PostList } from "./types";
-const baseUrl = process.env.RENDER_EXTERNAL_URL;
+const baseUrl = process.env.SITE_URL;
 const siteMapUrl = "public/sitemap.xml";
 const robotsText = `Sitemap: ${baseUrl}/${siteMapUrl} \nUser-agent: * \nAllow: /* \nDisallow: /api/*`;
 
@@ -46,8 +46,8 @@ export const generateSiteMap = async (articles: PostList[]) => {
 export const generateRssFeed = (articles: PostList[]) => {
   const feed = new RSS({
     title: "Pi journey articles",
-    feed_url: "localhost:3000/rss.xml",
-    site_url: "localhost:3000",
+    feed_url: baseUrl + "/rss.xml",
+    site_url: baseUrl + "",
   });
   articles.map(({ folder, posts }) => {
     return posts.forEach((post: PostDetails) => {
