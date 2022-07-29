@@ -1183,7 +1183,7 @@ import { readdirSync, writeFileSync } from "fs";
 import RSS from "rss";
 import { PostDetails, PostList } from "./types";
 
-const baseUrl = process.env.SITE_URL || "http://localhost:3000";
+const baseUrl = process.env.RENDER_EXTERNAL_URL|| "http://localhost.com";
 const siteMapUrl = "public/sitemap.xml";
 const robotsText = `Sitemap: ${baseUrl}/${siteMapUrl} \nUser-agent: * \nAllow: /* \nDisallow: /api/*`;
 
