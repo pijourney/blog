@@ -1,4 +1,4 @@
-Sitemap: http://localhost:3000/public/sitemap.xml 
+Sitemap: undefined/public/sitemap.xml 
 User-agent: * 
 Allow: /* 
 Disallow: /api/*
