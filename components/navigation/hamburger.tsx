@@ -11,9 +11,9 @@ export const Hamburger = ({ className, onClick, ...rest }: HamburgerProps) => {
         onClick();
       }}
     >
-      <span className="block h-0.5 w-8 animate-pulse bg-onSecondary"></span>
-      <span className="block h-0.5 w-8 animate-pulse bg-onSecondary"></span>
-      <span className="block h-0.5 w-8 animate-pulse bg-onSecondary"></span>
+      <span className="h-0.5 w-6 block sm:h-0.5 sm:w-8 animate-pulse bg-onSecondary"></span>
+      <span className="h-0.5 w-6 block sm:h-0.5 sm:w-8 animate-pulse bg-onSecondary"></span>
+      <span className="h-0.5 w-6 block sm:h-0.5 sm:w-8 animate-pulse bg-onSecondary"></span>
     </div>
   );
 };

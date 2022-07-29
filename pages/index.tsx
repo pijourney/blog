@@ -23,7 +23,7 @@ export async function getStaticProps() {
 const Home: NextPage<CategoryList> = ({ categories }) => {
   return (
     <>
-      <Main>
+      <Main tableOfContent={false}>
         <Navigation categories={categories} />
         <article className="bg-primary  rounded-xl p-5 prose  prose-custom prose-lg max-w-none">
           <h1>Welcome to Pijourney</h1>

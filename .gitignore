@@ -34,3 +34,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+#Custom build time stuff
+/public/rss.xml
+/public/sitemap.xml
+public/sitemap.xml
+public/rss.xml

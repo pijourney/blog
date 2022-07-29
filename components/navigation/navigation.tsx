@@ -39,7 +39,9 @@ export const Navigation = ({ categories }: NavProps) => {
   return (
     <>
       <Hamburger
-        className={`${!open ? "absolute" : "hidden"} top-8 right-5 lg:hidden`}
+        className={`${
+          !open ? "absolute" : "hidden"
+        } top-7 right-3 sm:top-8 sm:right-5 lg:hidden`}
         onClick={toggleState}
       />
       <nav
