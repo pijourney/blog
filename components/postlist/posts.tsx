@@ -35,7 +35,7 @@ const responsive = {
   tablet: {
     breakpoint: { max: 1024, min: 464 },
     items: 2,
-    slidesToSlide: 2,
+    slidesToSlide: 1,
   },
   mobile: {
     breakpoint: { max: 464, min: 0 },
@@ -53,7 +53,7 @@ export const Posts = ({ categories }: PostsProps) => {
   }, [categories]);
   //TODO sSSR and getInitProps for layout page and index to serverside render this.
   return (
-    <>
+    <div className="relative">
       {postList && (
         <Carousel
           swipeable={true}
@@ -67,7 +67,6 @@ export const Posts = ({ categories }: PostsProps) => {
           transitionDuration={500}
           containerClass="justify-center"
           removeArrowOnDeviceType={["tablet", "mobile"]}
-          dotListClass="custom-dot-list-style"
           renderDotsOutside={true}
           sliderClass="gap-2"
           arrows={true}
@@ -77,7 +76,7 @@ export const Posts = ({ categories }: PostsProps) => {
           })}
         </Carousel>
       )}
-    </>
+    </div>
   );
 };
 
