@@ -4,8 +4,43 @@
         <description><![CDATA[Pi journey articles]]></description>
         <link>http://localhost.com</link>
         <generator>RSS for Node</generator>
-        <lastBuildDate>Fri, 05 Aug 2022 14:00:50 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 05 Aug 2022 18:28:00 GMT</lastBuildDate>
         <atom:link href="http://localhost.com/rss.xml" rel="self" type="application/rss+xml"/>
+        <item>
+            <title><![CDATA[Setting up Nextjs with TypeScript]]></title>
+            <description><![CDATA[Setting up Nextjs with TypeScript, to enable our blog journey]]></description>
+            <link>nextjs/nextjs-typescript</link>
+            <guid isPermaLink="true">nextjs/nextjs-typescript</guid>
+            <pubDate>Fri, 05 Aug 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Unified Article layout]]></title>
+            <description><![CDATA[Creating a unified article layout accross all articles/blog posts.]]></description>
+            <link>nextjs/article-layout</link>
+            <guid isPermaLink="true">nextjs/article-layout</guid>
+            <pubDate>Fri, 05 Aug 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Table of content and navigation menu]]></title>
+            <description><![CDATA[Generating table of content from subheaders and navigation menu from the static articles.]]></description>
+            <link>nextjs/tableofcontent</link>
+            <guid isPermaLink="true">nextjs/tableofcontent</guid>
+            <pubDate>Fri, 05 Aug 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Enabling Syntax Highlighting]]></title>
+            <description><![CDATA[Enabling syntax highlighting using remark prism]]></description>
+            <link>nextjs/codeblock-readtime</link>
+            <guid isPermaLink="true">nextjs/codeblock-readtime</guid>
+            <pubDate>Fri, 05 Aug 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Generating sitemap and rss feed]]></title>
+            <description><![CDATA[Generating sitemap and rss feed from our articles /pages]]></description>
+            <link>nextjs/sitemap-rss</link>
+            <guid isPermaLink="true">nextjs/sitemap-rss</guid>
+            <pubDate>Fri, 05 Aug 2022 00:00:00 GMT</pubDate>
+        </item>
         <item>
             <title><![CDATA[Creating a Nextjs Blog like this!]]></title>
             <description><![CDATA[How to create a blog using nextjs, ]]></description>

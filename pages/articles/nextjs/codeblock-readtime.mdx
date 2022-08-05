@@ -1,0 +1,274 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import ExportedImage from "next-image-export-optimizer";
+import Link from "next/link";
+
+export const meta = {
+  title: "Enabling Syntax Highlighting",
+  metaTitle: "Enabling Syntax Highlighting",
+  metaDesc: "Enabling syntax highlighting using remark prism",
+  imgUrl: "/images/nextjs.jpg",
+  imgAlt: "image of a nextjslogo",
+  date: "2022-08-05",
+  updatedAt: "2022-08-05",
+  tags: [
+    "Nextjs",
+    "typescript",
+    "blog",
+    "markdown",
+    "javascript",
+    "mdx",
+    "static rendering",
+    "syntax highligning",
+    "prism",
+    "remark", 
+    "remark plugin",
+  ],
+  headers: [
+    "Syntax highlighting for codeblocks",
+    "Read time estimation",
+    "Wrapping up"
+  ],
+  slug: "codeblock-readtime",
+};
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+# {meta.title}
+
+This is part four of creating a nextjs blog using MDX.
+Please checkout part <Link href="/articles/nextjs/nextjs-typescript"> 1 </Link>, <Link href="/articles/nextjs/article-layout">2</Link> and <Link href="/articles/nextjs/tableofcontent"> 3 </Link> to get up to speed.
+In this part i will explain how we can add more functionallity to our blog by doing two concrete examples, 
+firstly by creating a read time estimation for how long the article will take to read aswell as extending mdx to render syntax highlighting for code blocks.
+
+
+## {meta.headers[0]}
+
+One of the final parts atleast for a tech blog is to be able to do code sections. Similar to the once i use in this article post.
+Since we are using next/mdx we can just use a remark plugin called prism which will do the heavy lifing for us.
+Go ahead and install that plugin by running the below command in ur cmd.
+
+```
+//by npm
+npm install remark-prism
+//by yarn
+yarn add remark-prism
+```
+
+Then head over to [PrismJs-Themes](https://github.com/PrismJS/prism-themes) and select a theme that fits your needs.
+I choose this one [pojoaque](https://github.com/PrismJS/prism-themes/blob/master/themes/prism-pojoaque.css).
+Just copy the whole file into ur global.css file and thats it.
+The last thing we have to do is to make @next/mdx use the prism plugin.
+Open next.config.js and add the plugin to the plugin list like below.
+
+```js
+/** @type {import('next').NextConfig} */
+
+const nextConfig = require("@next/mdx")({
+  extension: /\.mdx?$/,
+  //Plugins can be added here for different functionality.
+  options: {
+    remarkPlugins: [require("remark-prism")],
+    rehypePlugins: [],
+    providerImportSource: "@mdx-js/react",
+  },
+  reactStrictMode: true,
+  swcMinify: true,
+});
+
+module.exports = nextConfig({
+  pageExtensions: ["ts", "tsx", "mdx"],
+});
+```
+
+Now you can use the code highlighting by writing in mdx files something like this
+
+````js
+//by npm
+// remove the // in ur mdx.
+//``` You can specifify language here for example js.
+//Code goes in here.
+//```
+````
+
+Now if your like me you would probably like to alter functionallity of the code sections. This can easily be done by using MDXProvider and providing our own
+PRE html element.
+First of lets create a pre component which has copying functionallity for our code block.
+Create a folder inside components called mdxcomponents and inside that create a file called pre.tsx
+
+```js
+//components/mdxcomponents/pre.tsx
+import { useRef, useState } from "react";
+
+export const Pre = (props: any) => {
+  const textInput = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const onEnter = () => {
+    setHovered(true);
+  };
+  const onExit = () => {
+    setHovered(false);
+    setCopied(false);
+  };
+  const onCopy = () => {
+    setCopied(true);
+    if (textInput.current?.textContent)
+      navigator.clipboard.writeText(textInput.current.textContent);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+  return (
+    <div
+      ref={textInput}
+      onMouseEnter={onEnter}
+      onMouseLeave={onExit}
+      className="relative not-prose p-5 rounded-xl bg-slate-900"
+    >
+      {hovered && (
+        <button
+          aria-label="Copy code"
+          type="button"
+          className={`absolute right-2 top-2 h-8 w-8 rounded border-2  p-1  ${
+            copied
+              ? "border-green-900 focus:border-green-900 focus:outline-none"
+              : "border-amber-900"
+          }`}
+          onClick={onCopy}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            fill="none"
+            className={copied ? "text-amber-900" : "text-amber-900"}
+          >
+            {copied ? (
+              <>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </>
+            ) : (
+              <>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </>
+            )}
+          </svg>
+        </button>
+      )}
+      <pre>{props.children}</pre>
+    </div>
+  );
+};
+```
+
+Now for import simplification create index.ts inside the folder mdxcomponents
+
+```js
+//components/mdxcomponents/index.ts
+export * from "./pre";
+```
+
+Next lets provide the MDXProvider with our own custom component.
+So openup articlelayout.tsx and wrap the article html element with a MDXProvider component like below. Aswell as declaring our components to provide.
+
+```js
+// components/layout/articlelayout.tsx
+import { MDXProvider } from "@mdx-js/react";
+import { Pre } from "../mdxcomponents";
+
+const components = {
+  pre: Pre,
+
+};
+... the rest of code is here.
+
+ <MDXProvider components={components}>
+  <article
+    ref={ref}
+    id="article"
+    className="  rounded-xl p-5 prose  prose-custom prose-lg max-w-none relative"
+  >
+    {children}
+  </article>
+</MDXProvider>
+... more code below
+```
+
+Thats it our code sections should show up something like the one above with a copy button.
+
+## {meta.headers[1]}
+
+The read time estimation will be similar to medium own readtime estimation which indicates at the top an estimation of how long the article will take to read. I based my word per minute count on a quick googling for WPM average reading research, which links to an article that states that the average read speed is 238 words per minute!
+Enough of the shit shatter, show me the code!
+Once again create a new file inside components/mdxcomponents name it readtime.tsx.
+
+``` js
+//components/mdxcomponents/readtime.tsx
+import { useEffect, useState } from "react";
+export type ReadTimeProps = {
+  text: string;
+};
+export const ReadTime = ({ text }: ReadTimeProps) => {
+  const [readingTime, setReadingTime] = useState<number>();
+
+  const calculateTime = (text: string) => {
+    const wpm = +(process.env.WPM || 225);
+
+    const words = text ? text.trim().split(/\s+/).length : 0;
+    const time = Math.ceil(words / wpm);
+    return time;
+  };
+  useEffect(() => {
+    setReadingTime(calculateTime(text));
+  }, [text]);
+
+  return (
+    <div id="time" className="absolute top-0 right-5">
+      {readingTime} min read
+    </div>
+  );
+};
+```
+
+The code above simply resives the article text as a prop, splits the text on " " which creates a long array for each word of the article which then simply gives us the text lenght by reading the lenght of the array. We then devides the wordcount with the average wpm of 225. Notice the process.env.WPM. 
+This means that you can add an enviroment variable to modify the default of 225 WPM.
+It then renders a small div which is positioned at the top right corner of its parents div.
+Now to use it modify articlelayout.tsx with by adding the ReadTime component inside the article element like below, ps dont forget to import the component first:
+```js 
+//components/layout/articlelayout.tsx
+import { ReadTime } from "../mdxcomponents/readtime";
+... rest of code here
+<article ref={ref} id="article" className="rounded-xl p-5 prose  prose-custom prose-lg max-w-none relative">
+{ref.current && <ReadTime text={text} />} // this line is new.
+{children}
+</article>
+... rest of code...
+```
+## {meta.headers[2]}
+Thats it for part four, you can extend your blog with various other mdx components.
+There are also plenty remark and rehype plugins, refer to the <Link href="https://mdxjs.com/docs/extending-mdx/#list-of-components"> mdxjs list of components </Link> for more information.
+In the last section i will go through how to create a <Link href="/articles/nextjs/sitemap-rss"> static site map and an rss feed </Link> for our articles on the nextjs blog.
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

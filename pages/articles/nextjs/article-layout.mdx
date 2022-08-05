@@ -1,0 +1,323 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import ExportedImage from "next-image-export-optimizer";
+import Link from "next/link";
+
+export const meta = {
+  title: "Unified Article layout",
+  metaTitle: "Unified Article layout",
+  metaDesc: "Creating a unified article layout accross all articles/blog posts.",
+  imgUrl: "/images/layout.jpg",
+  imgAlt: "image of a three row layout",
+  date: "2022-08-05",
+  updatedAt: "2022-08-05",
+  tags: [
+    "Nextjs",
+    "typescript",
+    "blog",
+    "markdown",
+    "javascript",
+    "mdx",
+    "static rendering",
+    "layout",
+    "mdx"
+  ],
+  headers: [
+    "Layout",
+    "Tailwind css",
+    "Wrapping up"
+  ],
+  slug: "article-layout",
+};
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+# {meta.title}
+
+In this part we are going to use getStaticProps function to enable meta data in each of our mdx pages, this will bring life to our pages and enable us to create navigation menus, table of contents and much much more for our articles in the next part of this nextjs blog series.
+We also create a shared layout for each and everyone of our articles aswell as use tailwind css to create a page layout.
+
+## {meta.headers[0]}
+
+Now that we can use mdx to write our blogposts lets get started with creating the article layout a layout that can be reuse for every article.
+Mdx allows us to run javascript code in the page so lets leverage nextjs getStaticProps so that we can obtain all the articles on our webpage to create navigation.
+Create a new folder "components" in the root directory of your project. Inside the components folder create another folder called "util".
+Inside util create mdxutil.ts and paste the blow content into it
+
+```js
+//components/util/mdxutil.ts
+import fs from "fs";
+import { MetaData, PostDetails } from "./types";
+
+export const getCategoriesWithMetaData = async (directory: string) => {
+  const folders = fs.readdirSync(directory);
+  const cats = await Promise.all(
+    folders.map(async (folder) => {
+      var folderName = directory + folder;
+      const files = fs.readdirSync(folderName);
+      const posts: PostDetails[] = await Promise.all(
+        files.map(async (fileName) => {
+          const slug = fileName.replace(".mdx", "");
+          const meta = (await require(`/pages/articles/${folder}/${fileName}`))
+            .meta as MetaData;
+          return {
+            slug,
+            meta,
+          } as PostDetails;
+        })
+      );
+
+      return { folder, posts };
+    })
+  );
+
+  return cats;
+};
+```
+
+Then create another file called types.ts and paste the following into it.
+
+```js
+//types.ts
+export type MetaData = {
+  title: string,
+  metaTitle: string,
+  metaDesc: string,
+  imgUrl: string,
+  imgAlt: string,
+  date: string,
+  updatedAt: string,
+  tags: string[],
+  headers: string[],
+  slug: string,
+};
+export type PostDetails = {
+  slug: string,
+  meta: MetaData,
+};
+
+export type PostList = {
+  folder: string,
+  posts: PostDetails[],
+};
+```
+
+This step is optional however it makes for cleaner imports for other files.
+Create anther file called index.ts inside the util folder. If skipped make sure ur imports are correct
+
+```js
+//components/util/index.ts
+export * from "./mdxutil";
+export * from "./types";
+```
+
+Inside nextjs-blog.mdx add the following code just below the meta data we added before.
+During build time nextjs will get a list that contains all our articles metadata categoriesed depending on which subfolder inside "pages/articles" it resides in.
+This is going to help us create dynamic navigation links in the next section.
+
+```js
+// pages/articles/nextjs/nextjs-blog.mdx
+import { getCategoriesWithMetaData } from "../../../components/util";
+// meta data above.
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+//MDX content below.
+```
+
+Create another folder inside the components folder called layout. Inside layout create articlelaoyt.tsx.<br/>
+Articlelayout is going to be our unified structure for each of our articles.
+Lets use that categories data to insert meta tags in our html head section that contains the title and description and so on to improve our blogs seo.
+
+```js
+//components/layout/articlelayout.tsx
+import Head from "next/head";
+import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { MetaData, PostList } from "../util";
+export type ArticleLayoutProps = {
+  children: ReactNode,
+  categories: PostList[],
+  meta: MetaData,
+};
+export const ArticleLayout = ({
+  children,
+  categories,
+  meta,
+}: ArticleLayoutProps) => {
+  const ref = useRef <HTMLDivElement> (null);
+  const [text, setText] = useState("");
+  useEffect(() => {
+    const text = ref?.current?.innerText;
+    text && setText(text);
+  }, []);
+  return (
+    <>
+      <div>
+        <ArticleHead meta={meta} />
+        <div>Navigation goes here</div>
+        <article
+          ref={ref}
+          id="article"
+          className="rounded-xl p-5 max-w-none relative"
+        >
+          {children}
+        </article>
+        <div>Table of content goes here</div>
+      </div>
+    </>
+  );
+};
+
+export const ArticleHead: FC<{ meta: MetaData }> = ({ meta }) => {
+  return (
+    <Head>
+      <title>{meta.metaTitle}</title>
+      <meta name="description" content={meta.metaDesc} />
+      <meta name="keywords" content={meta.tags.toString()} />
+    </Head>
+  );
+};
+```
+
+This step is optional however it makes for cleaner imports for other files.
+Create anther file called index.ts inside the util folder. If skipped make sure ur imports are correct
+
+```js
+//components/layout/index.ts
+export * from "./articlelayout";
+```
+
+Articlelayout contains two components "articlehead" and "articlelayout". The articlehead is where we use the meta data to insert different html meta tags in each page header.
+While the articlelayout will serve as our template around each article. Here we will add navigation, table of content, read time component etc later.
+"article children article" is where our mdx file will be rendered as children.
+So lets open up nexjs-blog.mdx again and import articlelayout and at the bottom export the mdx file as shown below.
+
+```js
+// pages/articles/nextjs/nextjs-blog.mdx
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+//At the bottom add:
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);
+```
+
+Thats it now if you run yarn run dev or npm run dev and open up ur browser at http://localhost:8080/articles/nextjs/nextjs-blog
+You should see something like in the picture below, notice the meta headers that have been automaticlly filled with the meta data you entered in the mdx file.
+
+<ExportedImage
+  src="/images/metaheaders.png"
+  alt="Picture of browser with the current state of the article page."
+  layout="responsive"
+  width="800px"
+  height="200px"
+/>
+
+## {meta.headers[1]}
+For this tutorial im going to provide a very simple styling schema which you can follow along or completely skip if you want to create your own design/css.
+I'm going to use tailwind which is quite helpfull to speed up development. Only real negative with tailwind is that the classNames can become quite large.
+Lets start off by installing tailwind:
+
+```js
+npm install -D tailwindcss postcss autoprefixer
+//or
+yarn add -D tailwindcss postcss autoprefixer
+//Wait for the installing process then init tailwind:
+npx tailwindcss init -p
+//Install prose to style our articles typography.
+npm install -D @tailwindcss/typography
+#or
+yarn add -D @tailwindcss/typography
+```
+
+Open up your global css file, for nextjs its inside styles/global.css and add the following lines to it at the top.
+If you dont have a file create it and import it inside \_app.ts
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+For this tutorial we will use a preconfigured tailwind theme however you can configure your own in the tailwind.config.js
+First we need to add some custom grid layouts for tailwind add the following to tailwind.config.js.
+
+```js
+//tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [],
+  theme: {
+    gridTemplateColumns: {
+      mobile: "1fr",
+      tablet: "1fr 0.3fr",
+      full: "0.3fr 1fr 0.3fr",
+    },
+    extend: {},
+  },
+  plugins: [require("@tailwindcss/typography")],
+};
+```
+
+So one part about writing good articles is the typeography, tailwind has something called prose that we installed before which will take care of the styling of our articles.
+Now we can add the following classNames to the outer div in the articlelayout style the article div with some basic styling.
+This styling will create a responsive grid design:
+
+1. **mobile** = single column for the article with a popout navigation.
+2. **tablet** = large column - small side column - for a table of contents.
+3. **large screen** = three column layout for - navigation - article content - table of contents.
+
+It will also use prose with prose-slate theme to style our articles text/list/link elements etc.
+You can go ahead and create your own theme or use one of the precoinfgured themes that tailwind provides, you can read more [here.](https://tailwindcss.com/docs/typography-plugin).
+
+```js
+//components/layout/articlelayout.tsx
+imports etc.
+<>
+      <div className="w-full grid grid-cols-mobile md:grid-cols-tablet lg:grid-cols-full gap-4 p-5 items-start prose prose-lg prose-slate max-w-none">
+        <ArticleHead meta={meta} />
+        <div className="lg:relative lg:block lg:sticky lg:left-2  capitalize text-xl overflow-y-hidden top-4 overflow-x-hidden rounded-xl p-5 absolute top-0 right-0">
+          Navigation goes here
+        </div>
+        <article
+          ref={ref}
+          id="article"
+          className="rounded-xl p-5 prose  prose-custom prose-lg max-w-none relative"
+        >
+          {children}
+        </article>
+        <div className="rounded-xl p-5 hidden md:flex flex-wrap basis-full flex-col gap-y-2 sticky top-4">
+          Table of content goes here
+        </div>
+      </div>
+</>
+rest...
+```
+
+Thats it for now the next section will add navigation and table of contents to your article design which will make it look alot better.
+
+## {meta.headers[2]}
+
+In this part we learn how to create a meta data that we can use to do different stuff at build time for our pages, in this example we created meta html tags. We also learnt how to create a shared layout for all our articles, last but not least we dipped our toes into tailwind css and how to use it to create a page structure.
+Thats it for now the next section will add <Link href="/articles/nextjs/tableofcontent"> navigation and table of contents </Link> to your article design which will make it look alot better.
+Hope to see you there :-)
+
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

@@ -1,0 +1,651 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import ExportedImage from "next-image-export-optimizer";
+import Link from "next/link";
+
+export const meta = {
+  title: "Table of content and navigation menu",
+  metaTitle: "Table of content and navigation menu",
+  metaDesc: "Generating table of content from subheaders and navigation menu from the static articles.",
+  imgUrl: "/images/navigation.jpg",
+  imgAlt: "image of a navigation menu",
+  date: "2022-08-05",
+  updatedAt: "2022-08-05",
+  tags: [
+    "Nextjs",
+    "typescript",
+    "blog",
+    "markdown",
+    "javascript",
+    "mdx",
+    "static rendering",
+    "table of content",
+    "navigation menu",
+    "menu",
+    "submenus",
+    "generation"
+  ],
+  headers: [
+    "Navigation menu",
+    "Table of content",
+    "Wrapping up"
+  ],
+  slug: "tableofcontent",
+};
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+# {meta.title}
+
+This is part three of creating a nextjs blog using MDX.
+Please checkout part <Link href="/articles/nextjs/nextjs-typescript"> 1 </Link> and <Link href="/articles/nextjs/article-layout">2</Link> to get up to speed.
+In this section i will go over how to create a table of content for each page that we are currently on which includes all the headers.
+Aswell as the dynamiclly created navigation for the different articles we have on our page.
+The navigation menu takes its structure from the map structure in which the mdx files are inside.
+However this leaves the ordering of the navigation links to the OS which i dont like, thus i added functionallity to order the menus that you need to.
+And the once left out will be ordered by the map structure.
+
+## {meta.headers[0]}
+Create a new folder inside components called navigation and create a new file called hamburger.tsx.
+This file will be the hamburger icon for when the website is run in a tablet or smaller device.
+
+```js
+//components/navigation/hamburger.tsx
+export interface HamburgerProps {
+  onClick: Function;
+  className?: string;
+}
+export const Hamburger = ({ className, onClick }: HamburgerProps) => {
+  return (
+    <div
+      className={` space-y-2 z-50 ${className}`}
+      onClick={(_) => {
+        onClick();
+      }}
+    >
+      <span className="block h-0.5 w-8 animate-pulse bg-slate-900"></span>
+      <span className="block h-0.5 w-8 animate-pulse bg-slate-900"></span>
+      <span className="block h-0.5 w-8 animate-pulse bg-slate-900"></span>
+    </div>
+  );
+};
+```
+
+For the MenuItems we are going to need a svg, this is a neat trick to use svgs with nextjs.
+Create a folder called svg inside the components folder. Inside it create chevronright.tsx
+The svg can be found on for example [radix](https://deploy-preview-31--eager-lewin-57feec.netlify.app/icons/) you can copy and paste any svg like this and then use them as components instead.
+
+```js
+//components/svg/chevronright.tsx
+import React from "react";
+export interface ChevronRight {
+  className?: string;
+}
+export const ChevronRight = ({ className }: ChevronRight) => {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 15 15"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M6.1584 3.13508C6.35985 2.94621 6.67627 2.95642 6.86514 3.15788L10.6151 7.15788C10.7954 7.3502 10.7954 7.64949 10.6151 7.84182L6.86514 11.8418C6.67627 12.0433 6.35985 12.0535 6.1584 11.8646C5.95694 11.6757 5.94673 11.3593 6.1356 11.1579L9.565 7.49985L6.1356 3.84182C5.94673 3.64036 5.95694 3.32394 6.1584 3.13508Z"
+        fill="currentColor"
+        fillRule="evenodd"
+        clipRule="evenodd"
+      ></path>
+    </svg>
+  );
+};
+```
+
+Then create index.ts inside this the components/svg foilder to export all the icons easier.
+
+```js
+//components/svg/index.ts
+export * from "./chevronright";
+```
+
+Create another file called menuitem.tsx inside the navigation folder. This file is the acctual navigations item.
+
+```js
+//components/navigation/menuitem.tsx
+import { useState } from "react";
+import { ChevronRight } from "../svgs";
+import { PostDetails } from "../util";
+import { SubMenu } from "./submenu";
+
+export interface MenuProps {
+  name: string;
+  posts: PostDetails[];
+  currentRoute: string[];
+  defaultOpen: boolean;
+}
+export const MenuItem = ({
+  name,
+  posts,
+  currentRoute,
+  defaultOpen,
+}: MenuProps) => {
+  const [open, setOpen] = useState <boolean> (defaultOpen); 
+  return (
+    <li onClick={(e) => setOpen(!open)}>
+      <label className="hover:text-emerald-600 flex cursor-pointer mt-2.5 overflow-hidden snap-start text-ellipsis transition-colors justify-between justify-items-center">
+        {name}
+        {<ChevronRight className={open ? " rotate-90" : ""} />}
+      </label>
+      {posts && (
+        <SubMenu
+          name={name}
+          posts={posts}
+          open={open}
+          currentSubRoute={currentRoute[3]}
+        />
+      )}
+    </li>
+  );
+};
+```
+
+Create another file called submenu.tsx inside the navigation folder. This will represent a submenu containing menuitems for a category.
+
+```js
+//components/navigation/submenu.tsx
+import Link from "next/link";
+import { PostDetails } from "../util";
+import { MenuProps } from "./menuitem";
+
+interface SubMenuProps
+  extends Omit<Omit<MenuProps, "currentRoute">, "defaultOpen"> {
+  open: boolean;
+  currentSubRoute: string;
+}
+export const SubMenu = ({
+  name,
+  posts,
+  open,
+  currentSubRoute,
+}: SubMenuProps) => {
+  return (
+    <nav className={!open ? "invisible max-h-0" : "pl-4"}>
+      <ul>
+        {posts.map((post: PostDetails, i: number) => {
+        const current = currentSubRoute === post.meta.slug;
+        return (
+          <Link href={"/articles/" + name + "/" + post.slug} key={i}>
+            <li key={name + "-" + post.slug}>
+              <label
+                className={current ? " text-emerald-600" : "hover:emerald-600"}
+              >
+                {post.meta.metaTitle}
+              </label>
+            </li>
+          </Link>
+        );
+      })}
+    </ul>
+    </nav>
+  );
+};
+```
+
+Create a folder called hooks at the root of the project. Inside it create a file called useOnClickOutisde.ts.
+This hook will help us determine once a click is outside of a component. In our case we need it for the hamburger menu,
+so that the navigation can be closed if the user presses outside of the navigation.
+
+```js
+//hooks/useOnClickOutside.ts
+import { RefObject, useEffect } from "react";
+
+type Handler = (event: MouseEvent) => void;
+
+export function useOnClickOutside<T extends HTMLElement = HTMLElement>(
+  ref: RefObject<T>,
+  handler: Handler
+): void {
+  useEffect(() => {
+    const listener = (event: any) => {
+      const el = ref?.current;
+      // Do nothing if clicking ref's element or descendent elements
+      if (!el || el.contains(event.target as Node)) {
+        return;
+      }
+
+      handler(event);
+    };
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  });
+}
+```
+
+Then create index.ts inside this the hooks foilder to export all the hooks easier.
+
+```js
+//hooks/index.ts
+export * from "./useOnClickOutside";
+```
+
+Create another file called navigation.tsx inside the navigation folder. This will represent the acctual navigation menu.
+
+```js
+//components/navigation/navigation.tsx
+import { useRouter } from "next/router";
+import { useRef, useState } from "react";
+import { useOnClickOutside } from "../../hooks";
+import { PostList } from "../util";
+import { Hamburger } from "./hamburger";
+import { MenuItem } from "./menuitem";
+
+const getAllNavs = (categories: PostList[], currentRoute: string[]) => {
+  return (
+    <>
+      {categories.map(({ folder, posts }: PostList, y: number) => {
+        return (
+          <MenuItem
+            name={folder}
+            posts={posts}
+            currentRoute={currentRoute}
+            defaultOpen={currentRoute[2] === folder}
+            key={y}
+          />
+        );
+      })}
+    </>
+  );
+};
+export type NavProps = {
+  categories: PostList[],
+};
+export const Navigation = ({ categories }: NavProps) => {
+  const router = useRouter();
+  const ref = useRef <HTMLElement> (null);
+  const [open, setOpen] = useState <boolean> (false); 
+  const toggleState = () => {
+    setOpen(!open);
+  };
+
+  useOnClickOutside(ref, () => setOpen(false));
+
+  const currentRoute = router.pathname;
+  return (
+    <>
+      <Hamburger
+        className={`${!open ? "absolute" : "hidden"} top-8 right-5 lg:hidden`}
+        onClick={toggleState}
+      />
+      <nav
+        ref={ref}
+        className={`lg:relative  lg:block lg:sticky lg:left-2  capitalize text-xl overflow-y-hidden top-4 overflow-x-hidden rounded-xl p-5 absolute top-0 right-0 ${
+          open ? "visible h-full z-10" : "hidden"
+        }`}
+      >
+        {open && (
+          <svg
+            onClick={() => setOpen(false)}
+            className="h-8 w-8 text-amber-600 ml-auto "
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        )}
+        <ul className="relative list-none mr-1.5 pl-3.5 pr-3.5">
+          {getAllNavs(categories, currentRoute.split("/"))}{" "}
+        </ul>
+      </nav>
+    </>
+  );
+};
+```
+
+The final step is to acctually use the navigation component. Open up components/layout/articleLayout.tsx.
+Exchange `<div className="lg:relative lg:block lg:sticky lg:left-2 capitalize text-xl overflow-y-hidden top-4 overflow-x-hidden rounded-xl p-5 absolute top-0 right-0">Navigation goes here</div>`
+for `<Navigation categories={categories} />` Also dont for get to import the navigation component.
+
+The last part is optional, currently we have a navigation menu that gets the ordering from the filesystem of the operating system that builds the project.
+Which works fine unless you need to order the navigation links, which in most cases you probably do.
+
+To get the power to be able to order the navlinks and the subnavlinks create a new file in components/navigation, i called it navigationOrder.ts.
+```js 
+//components/navigation/navigationOrder.ts
+export type NavigationOrderType = {
+  category: string;
+  orderArticleList: string[];
+};
+//This is your list, where you can add categories and the articles sorted in that category.
+const navigationOrder: NavigationOrderType[] = [
+  {
+    category: "nextjs",
+    orderArticleList: ["nextjs-blog"],
+  },
+  {
+    category: "test",
+    orderArticleList: [],
+  },
+];
+//Finds a category, returns infinity (places navigation at the bottom) if not found and the order if its found.
+export const findTopNavigation = (category: string) => {
+  const foundIndex = navigationOrder.findIndex(function (obj) {
+    return obj.category === category;
+  });
+  return foundIndex === -1 ? Infinity : foundIndex;
+};
+//Finds a submenu inside a category, returns infinity (places navigation at the bottom) if not found and the order if its found.
+export const findSubNavigation = (category: string, articleName: string) => {
+  const foundIndex = navigationOrder.findIndex((obj) => {
+    return obj.category === category;
+  });
+  if (foundIndex != -1) {
+    const subIndex = navigationOrder[foundIndex].orderArticleList.findIndex(
+      (article) => {
+        return article === articleName.replace(".mdx", "");
+      }
+    );
+    return subIndex === -1 ? Infinity : subIndex;
+  }
+  return Infinity;
+};
+```
+Now we have  to sort the categories and its submenus, by using thses two functions when we acctuly grab our mdx files from the file system.
+Open up mdxUtil.ts inside components/util and update the function "getCategoriesWithMetaData" as below see comments for changes.
+```js
+export const getCategoriesWithMetaData = async (directory: string) => {
+  const folders = fs.readdirSync(directory);
+  folders.sort((a, b) => findTopNavigation(a) - findTopNavigation(b)); // sorts the categories
+  const cats = await Promise.all(
+    folders.map(async (folder) => {
+      var folderName = directory + folder;
+      const files = fs.readdirSync(folderName);
+      files.sort(
+        (a, b) => findSubNavigation(folder, a) - findSubNavigation(folder, b) 
+      ); // sorts the submenus.
+      const posts: PostDetails[] = await Promise.all(
+        files.map(async (fileName) => {
+          const slug = fileName.replace(".mdx", "");
+          const meta = (await require(`/pages/articles/${folder}/${fileName}`))
+            .meta as MetaData;
+          return {
+            slug,
+            meta,
+          } as PostDetails;
+        })
+      );
+
+      return { folder, posts };
+    })
+  );
+
+  return cats;
+};
+```
+Thats  it now you have the power to order your navigation links anyway you want it, and those that you leave out will still show up and remain the filestructure order from before.
+
+## {meta.headers[1]}
+
+
+For the table of content we want to highlight which part of the article the user is currently reading therefore we need another hook. 
+This hook decides whether a element is inside the top 20% of the screen by levering the [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
+Inside /hooks folder create useIntersection.ts.
+
+```js
+//hooks/useIntersection.ts
+import { useEffect, useState } from "react";
+const config = {
+  root: null,
+  rootMargin: "5% 0px -80%", // toggle true when element is at top of page.
+  threshold: 0,
+};
+export const useIntersection = (element: HTMLElement | null) => {
+  const [isVisible, setState] = useState(-1);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setState(1);
+        return;
+      }
+      if (entry.boundingClientRect.top > 0) {
+        setState(-1); // do things if below
+      } else {
+        setState(0);
+      }
+    }, config);
+    if (element) {
+      element && observer.observe(element);
+      return () => element && observer.unobserve(element);
+    }
+  }, [element]);
+
+  return isVisible;
+};
+```
+
+Open up the index.ts inside hooks and add the following line to export the new hook `export * from "./useIntersection";`
+
+Create another folder inside componets name it tableofcontent inside that map create tableofcontent.tsx.
+
+```js
+//components/tableofcontent/tableofcontent.tsx
+import Link from "next/link";
+import { FC, useEffect, useState } from "react";
+import { useIntersection } from "../../hooks";
+import { MetaData } from "../util";
+type tableOfContentProps = {
+  meta: MetaData;
+  articleHasScroll: boolean;
+};
+
+   
+const getClassNames = (
+  inViewPort: number,
+  activeAnchor: number,
+  linkNumber: number
+) => {
+  let classNames = "hover:text-emerald-600 text-xl";
+  //Above.
+  if (inViewPort === 0 || activeAnchor > linkNumber) {
+    classNames = classNames + " text-amber-600";
+  }
+  if (inViewPort === 1 || activeAnchor === linkNumber) {
+    classNames = "text-emerald-600 text-xl";
+  }
+  return classNames;
+};
+
+const AnchorLink: FC<{
+  header: string;
+  activeAnchor: number;
+   setActiveAnchor: Function;
+  linkNumber: number;
+}> = ({ header, activeAnchor, setActiveAnchor, linkNumber }) => {
+  let inViewport = -1;
+  let headerElement = null;
+  if (typeof window !== "undefined")
+    headerElement = document.getElementById(
+      header.replaceAll(" ", "-").toLowerCase()
+    );
+  inViewport = useIntersection(headerElement);
+ useEffect(() => {
+    if (inViewport === 1) {
+      setActiveAnchor(linkNumber);
+    }
+   }, [inViewport, linkNumber, setActiveAnchor]);
+
+  const link = header.replaceAll(" ", "-").toLowerCase();
+  return (
+    <Link href={"#" + link}>
+      <a className={getClassNames(inViewport, activeAnchor, linkNumber)}>
+        {header}
+      </a>
+    </Link>
+  );
+};
+export const TableOfContent = ({
+  meta,
+  articleHasScroll,
+}: tableOfContentProps) => {
+  const [activeAnchor, setActiveAnchor] = useState<number>(0);
+  const getEveryLink = (
+    headers: string[],
+    activeAnchor: number,
+    setActiveAnchor: Function
+  ) => {
+    return (
+      headers &&
+      headers.map((header, i) => {
+        return (
+          <AnchorLink
+            key={i}
+            header={header}
+            activeAnchor={articleHasScroll ? activeAnchor : -1}
+            setActiveAnchor={setActiveAnchor}
+            linkNumber={i}
+          />
+        );
+      })
+    );
+  };
+
+  return (
+    <div className="rounded-xl p-5 hidden md:flex flex-wrap basis-full flex-col gap-y-2 sticky top-4">
+      <h3 className="text-2xl mb-3">Table of content</h3>
+      {getEveryLink(meta.headers, activeAnchor, setActiveAnchor)}
+    </div>
+  );
+};
+```
+
+Create index.ts inside components/tableofcontets to enable easier imports.
+
+```js
+//components/tableofcontet/index.ts
+export * from "./tableofcontent";
+```
+Theres one more thing we need to do and thats to create a mdxComponent to tell MDX to render our h2 headers with a anchor tag id.
+Create a new file in /components/mdxComponents, name it h2.tsx.
+```js 
+// /components/mdxComponents/h2.tsx
+export function H2({ children }: any) {
+  const id = children.replaceAll(" ", "-").toLowerCase();
+  return <h2 id={id}>{children}</h2>;
+}
+
+```
+Dont for get to add the h2 export to our index.ts inside the mdxcomponents folder.
+```js
+//components/mdxcomponents/index.ts
+export * from "./pre";
+export * from "./h2";
+
+```
+Add the h2 to our components list in components/layout/articlelayout.tsx and then use the table of components inside components/layout/articlelayout.tsx.
+Once thats done our table of content should fill up with the subtitles from the meta data of each article.
+Your components/layout/articlelayout.tsx should look like this:
+
+```js
+//components/layout/articlelayout.tsx
+import { MDXProvider } from "@mdx-js/react";
+import Head from "next/head";
+import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { Pre } from "../mdxcomponents";
+import { Navigation } from "../navigation/navigation";
+import { TableOfContent } from "../tableofcontent";
+import { MetaData, PostList } from "../util";
+
+const components = {
+  pre: Pre,
+  h2: H2,
+
+};
+export type ArticleLayoutProps = {
+  children: ReactNode;
+  categories: PostList[];
+  meta: MetaData;
+};
+export const ArticleLayout = ({
+  children,
+  categories,
+  meta,
+}: ArticleLayoutProps) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const [text, setText] = useState("");
+  const [articleHasScroll, setArticleHasScroll] = useState<boolean>(false);
+  const elementBiggerThanViewport = (rect: DOMRect) => {
+    return (
+      rect.bottom >=
+      (window.innerHeight || document.documentElement.clientHeight)
+    );
+  };
+  useEffect(() => {
+    if (ref && ref.current) {
+      const text = ref.current.innerText;
+      text && setText(text);
+      const rect = ref.current.getBoundingClientRect();
+      const showTableOfContentHighlight = elementBiggerThanViewport(rect);
+      if (showTableOfContentHighlight)
+        setArticleHasScroll(showTableOfContentHighlight);
+    }
+  }, []);
+  return (
+    <>
+      <div className="w-full grid grid-cols-mobile md:grid-cols-tablet lg:grid-cols-full gap-4 p-5 items-start prose prose-lg prose-slate max-w-none">
+        <ArticleHead meta={meta} />
+        <Navigation categories={categories} />
+        <MDXProvider components={components}>
+          <article
+            ref={ref}
+            id="article"
+            className="rounded-xl p-5 prose  prose-custom prose-lg max-w-none relative"
+          >
+            {children}
+          </article>
+        </MDXProvider>
+        <TableOfContent meta={meta} articleHasScroll={articleHasScroll} />
+      </div>
+    </>
+  );
+};
+
+export const ArticleHead: FC<{ meta: MetaData }> = ({ meta }) => {
+  return (
+    <Head>
+      <title>{meta.metaTitle}</title>
+      <meta name="description" content={meta.metaDesc} />
+      <meta name="keywords" content={meta.tags.toString()} />
+    </Head>
+  );
+};
+```
+
+## {meta.headers[2]}
+
+In this section we learnt how to use the staticly created categories list to create a navigation menu and table of contents. The categories list containing all articles along with each articles meta data, based on the file structure of our pages/article map.
+In the next part we will deck out the blog with read time estimation and code blocks that can handle syntext highligting and copy paste functionallity.
+Link to part 3 here.
+
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

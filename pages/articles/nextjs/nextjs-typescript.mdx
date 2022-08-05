@@ -1,0 +1,149 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import ExportedImage from "next-image-export-optimizer";
+import Link from "next/link";
+
+export const meta = {
+  title: "Setting up Nextjs with TypeScript",
+  metaTitle: "Setting up Nextjs with TypeScript!",
+  metaDesc: "Setting up Nextjs with TypeScript, to enable our blog journey",
+  imgUrl: "/images/nextjs.jpg",
+  imgAlt: "image of a nextjslogo",
+  date: "2022-08-05",
+  updatedAt: "2022-08-05",
+  tags: [
+    "Nextjs",
+    "typescript",
+    "blog",
+    "markdown",
+    "javascript",
+    "mdx",
+    "static rendering"
+  ],
+  headers: [
+    "Setting up nextjs with typescript",
+    "Using mdx to create blog posts",
+    "Wrapping up"
+  ],
+  slug: "nextjs-typescript",
+};
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+# {meta.title}
+
+Hello 👋 during the last two weeks i've been creating a personal nextjs blog using markdown. During this time i've come to realise there aren't any extensive guides on how to create a fully functionall blog using nextjs with mdx.
+Thus i decided to create my own, which will include the following parts.
+
+- Setting up nextjs with typescript
+- <Link href="/articles/nextjs/mdx"> Using mdx to create blog posts.</Link>
+- <Link href="/articles/nextjs/article-layout"> Unified Article layout</Link>
+- <Link href="/articles/nextjs/tailwindcss"> How to use tailwind css to create styling with ease.</Link>
+- <Link href="/articles/nextjs/navigation-with-controll"> Navigation links from the mdx file structure with order controll.</Link>
+- <Link href="/articles/nextjs/tableofcontent"> Table of content for submenus with anchor tags.</Link>
+- <Link href="/articles/nextjs/codeblock-readtime"> Code block and readtime estimation.</Link>
+- <Link href="/articles/nextjs/sitemap-rss"> Sitemap and rss feed.</Link>
+  All of the above will be covered in a Four part serier.
+
+## {meta.headers[0]}
+
+Nextjs is a react framework that simplifies alot of the grunt work of creating a production ready and fast website.
+It includes several features such as Automatic Static Optimization, staticly generating what can be static produced at buildtime
+and serverside rendering the rest.
+Which is what we will be leveraging heavily in creating our blog.
+You can read more about nextjs [here.](https://nextjs.org/learn/foundations/about-nextjs)
+
+So lets get started... Create a new folder where ever you would like your source code to reside and openup a command prompt.
+and type the follwing to init a nextjs project.
+
+```
+npx create-next-app@latest --ts
+# or
+yarn create next-app --typescript
+# or
+npm create next-app --ts
+```
+
+Follow the intuitive guide in the command prompt and enter a name for your project.<br/>
+For example:
+"What is your project named?": nextjs-blog <br/>
+Wait and let nextjs configure your project: Success! Created nextjs-blog at nextjs-blog
+
+## {meta.headers[1]}
+
+The next step to a fully functional blog is to setup mdx for nextjs.
+Start of by running the below command to install dependencies that will ease our handling with mdx.
+
+```
+npm install @next/mdx @mdx-js/loader @mdx-js/react
+# or
+yarn add @next/mdx @mdx-js/loader @mdx-js/react
+```
+
+Lets configure nextjs to use these dependecies by editing next.config.js
+
+```js
+const nextConfig = require("@next/mdx")({
+  extension: /\.mdx?$/,
+  //Plugins can be added here for different functionality.
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+    providerImportSource: "@mdx-js/react",
+  },
+});
+
+module.exports = nextConfig({
+  pageExtensions: ["ts", "tsx", "mdx"],
+});
+```
+
+Thats it now you should be able to do the following:
+
+1. Inside the pages folder create a new folder i called mine "articles" inside
+2. Inside articles folder create nextjs folder.
+3. Inside nextjs i created nextjs-blog.mdx.
+
+Open nextjs-blog.mdx in your favorite editor im using visual studio code and add the following code:
+
+```js
+//pages/articles/nextjs-blog.mdx
+export const meta = {
+  title: "Test articles inside nextjs folder",
+  metaTitle: "How to create a blog!",
+  metaDesc: "How to create a blog using nextjs",
+  imgUrl: "/images/blog.jpg",
+  imgAlt: "image of a blog",
+  date: "2022-07-12",
+  updatedAt: "2022-07-12",
+  tags: ["test"],
+  headers: ["Use Mdx to write blogs"],
+  slug: "nextjs-blog",
+};
+
+# This is where the title goes.
+The meta data will be used to create rss feeds / sitemap/ navigation links along with headers for the page.
+## Sub title here
+random text goes here.
+```
+Run npm run dev in your command line and then head over too http://localhost:3000/articles/nextjs-blog
+
+## {meta.headers[2]}
+
+In Part one we went through how to setup Nextjs, typescript and MDX. Most of the content covered in part one works out of the box. Thus our nextjs blog is fully functional. 
+However it required alot of work on each post to make them look good, aswell as theres not much functionallity in them.
+All of which will be covered in part two <Link href="/articles/nextjs/article-layout"> Article layout</Link>.
+Hope to see you there :-)
+
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

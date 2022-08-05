@@ -5,7 +5,14 @@ export type NavigationOrderType = {
 const navigationOrder: NavigationOrderType[] = [
   {
     category: "nextjs",
-    orderArticleList: ["nextjs-blog"],
+    orderArticleList: [
+      "nextjs-typescript",
+      "article-layout",
+      "tableofcontent",
+      "codeblock-readtime",
+      "sitemap-rss",
+      "nextjs-blog",
+    ],
   },
   {
     category: "k3s",

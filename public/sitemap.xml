@@ -2,12 +2,42 @@
         <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url>
             <loc>http://localhost.com/</loc>
-            <lastmod>2022-08-05T14:00:50.545Z</lastmod>
+            <lastmod>2022-08-05T18:28:00.597Z</lastmod>
             <changefreq>monthly</changefreq>
             <priority>1</priority>
         </url>
     
               <url>
+            <loc>nextjs/nextjs-typescript</loc>
+            <lastmod>2022-08-05T00:00:00.000Z</lastmod>
+            <changefreq>monthly</changefreq>
+            <priority>0.9</priority>
+        </url>
+    ,<url>
+            <loc>nextjs/article-layout</loc>
+            <lastmod>2022-08-05T00:00:00.000Z</lastmod>
+            <changefreq>monthly</changefreq>
+            <priority>0.9</priority>
+        </url>
+    ,<url>
+            <loc>nextjs/tableofcontent</loc>
+            <lastmod>2022-08-05T00:00:00.000Z</lastmod>
+            <changefreq>monthly</changefreq>
+            <priority>0.9</priority>
+        </url>
+    ,<url>
+            <loc>nextjs/codeblock-readtime</loc>
+            <lastmod>2022-08-05T00:00:00.000Z</lastmod>
+            <changefreq>monthly</changefreq>
+            <priority>0.9</priority>
+        </url>
+    ,<url>
+            <loc>nextjs/sitemap-rss</loc>
+            <lastmod>2022-08-05T00:00:00.000Z</lastmod>
+            <changefreq>monthly</changefreq>
+            <priority>0.9</priority>
+        </url>
+    ,<url>
             <loc>nextjs/nextjs-blog</loc>
             <lastmod>2022-07-12T00:00:00.000Z</lastmod>
             <changefreq>monthly</changefreq>

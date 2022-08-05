@@ -1,0 +1,267 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import ExportedImage from "next-image-export-optimizer";
+import Link from "next/link";
+
+export const meta = {
+  title: "Generating sitemap and rss feed",
+  metaTitle: "Generating sitemap and rss feed!",
+  metaDesc: "Generating sitemap and rss feed from our articles /pages",
+  imgUrl: "/images/sitemap.jpg",
+  imgAlt: "image of a sitemap",
+  date: "2022-08-05",
+  updatedAt: "2022-08-05",
+  tags: [
+    "Nextjs",
+    "typescript",
+    "blog",
+    "markdown",
+    "javascript",
+    "mdx",
+    "static rendering",
+    "rss",
+    "sitemap",
+    "generating from mapstructure",
+  ],
+  headers: [
+    "RSS Feed and Sitemap introduction",
+    "Setting up nextjs with typescript",
+    "Using mdx to create blog posts",
+    "Wrapping up"
+  ],
+  slug: "sitemap-rss",
+};
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+# {meta.title}
+
+This is part three of creating a nextjs blog using MDX.
+Please checkout part <Link href="/articles/nextjs/nextjs-typescript"> 1 </Link>, <Link href="/articles/nextjs/article-layout">2</Link>, <Link href="/articles/nextjs/tableofcontent"> 3 </Link> and <Link href="/articles/nextjs/codeblock-readtime">4 </Link> to get up to speed. // create links.
+I this final part of this nextjs blogging tutorial i will go through how you can go about generating an ress feeds aswell as a site map whilst building your nextjs project.
+
+## {meta.headers[0]}
+
+A sitemap is a xml file which contains information for about your website for crawlers, like Google. For smaller websites it's generally not needed according to Google.
+I decided to generate both a sitemap and rss feed because it wont interfer with the size of our pages nor the speed since its created staticly during build time.
+You may also add other resources to your site map if you want to like images /videos etc.
+The structure of an entry in the sitemap is the following:
+
+```xml
+<url>
+  <loc>nextjs/nextjs-blog</loc> 
+  <lastmod>2022-07-12T00:00:00.000Z</lastmod
+  <changefreq>monthly</changefreq>
+  <priority>0.9</priority>
+</url>
+```
+Loc: contains the location of the resource.
+LastMod: the last modification date as timestamp.
+changefreq: always, hourly, daily, weekly, monthly, yearly, never-and gives the crawler a hint how often it should recrawl the page for updates.
+Priority: A value between 0.0-1.0 indicates the importance  of a specific resource compared to other resources on your page.
+You can read more about sitemaps here.
+
+An RSS feed is a xml file that contains information about each content on a web site. The structure of an entry in the RSS feed is the following:
+```xml
+<item>
+  <title><![CDATA[Test articles inside nextjs folder]]></title>
+  <description><![CDATA[How to create a blog using nextjs]]>   </description>
+  <link>nextjs/nextjs-blog</link>
+  <guid isPermaLink="true">nextjs/nextjs-blog</guid>
+  <pubDate>Tue, 12 Jul 2022 00:00:00 GMT</pubDate>
+</item>
+```
+
+Title: The title of the content.
+Description: A breif description of the content.
+Link: The link to the content.
+Guid: a unique string for the content, i choose to go with the url.
+pubDate: The date the content was published.
+For the rss feed we will use a package called RSS. Start of by install the RSS pacakge by running the following:
+
+```
+npm install rss
+npm install @types/rss -D
+//or
+yarn add rss
+yarn add @types/rss -D
+```
+
+Now lets go ahead and create the generation functions.
+Create a new file inside components/util and name it generators.ts.
+
+```js
+//components/util/generators.ts
+import { readdirSync, writeFileSync } from "fs";
+import RSS from "rss";
+import { PostDetails, PostList } from "./types";
+
+const baseUrl = process.env.SITE_URL || "http://localhost:3000";
+const siteMapUrl = "public/sitemap.xml";
+const robotsText = `Sitemap: ${baseUrl}/${siteMapUrl} \nUser-agent: * \nAllow: /* \nDisallow: /api/*`;
+
+export const generateSiteMap = async (articles: PostList[]) => {
+  const nonArticlePages = readdirSync("./pages").filter((staticPage) => {
+    return ![
+      "_app.tsx",
+      "_document.tsx",
+      "_error.tsx",
+      "sitemap.xml.js",
+      "api",
+      "articles",
+    ].includes(staticPage);
+  });
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            ${nonArticlePages
+              .map((page) => {
+                const url = getUrl(page);
+                return returnXmlUrl(url, new Date(), "monthly", 1.0);
+              })
+              .join("")}
+              ${articles
+                .map(({ folder, posts }) => {
+                  return posts.map((post: PostDetails) => {
+                    const url = folder + "/" + post.slug;
+                    return returnXmlUrl(
+                      url,
+                      new Date(post.meta.updatedAt),
+                      "monthly",
+                      0.9
+                    );
+                  });
+                })
+                .join("")}
+        </urlset>`;
+  writeFileSync(siteMapUrl, sitemap);
+  writeFileSync("public/robots.txt", robotsText);
+
+};
+
+export const generateRssFeed = (articles: PostList[]) => {
+  const feed = new RSS({
+    title: "Pi journey articles",
+    feed_url: "localhost:3000/rss.xml",
+    site_url: "localhost:3000",
+  });
+  articles.map(({ folder, posts }) => {
+    return posts.forEach((post: PostDetails) => {
+      const url = folder + "/" + post.slug;
+      const meta = post.meta;
+      feed.item({
+        title: meta.title,
+        description: meta.metaDesc,
+        url: url,
+        date: meta.date,
+      });
+    });
+  });
+  writeFileSync("./public/rss.xml", feed.xml({ indent: true }));
+};
+
+const getUrl = (page: string) => {
+  const path = page
+    .replace("pages/", "/")
+    .replace(".tsx", "")
+    .replace("index", "");
+  const route = path === "/index" ? "" : path;
+  return `${baseUrl}${route}`;
+};
+
+const returnXmlUrl = (
+  url: string,
+  date: Date,
+  change: string,
+  priority: number
+) => {
+  return `<url>
+            <loc>${url}</loc>
+            <lastmod>${date.toISOString()}</lastmod>
+            <changefreq>${change}</changefreq>
+            <priority>${priority}</priority>
+        </url>
+    `;
+};
+```
+
+The file contains two helper functions returnXmlUrl which builds up the sitemap xml for each of our articles and getUrl which will build the acctual url for a page that is not an article.
+Then there are the two exported function generateSiteMap and generateRssFeed.
+The generateSiteMap works like this:
+
+- Look inside the folder pages exclude articles folder and everything thats not relevant.
+- Then create a sitemap from all the nonArticlePages and all the categories ( the meta data we read in from all the files inside articles)
+- For each of those create a sitemap entry
+- Then write all the entries to a file inside the public folder called sitemap.xml
+- Finally create a robots.txt in the public folder linking to our sitemap
+
+The logic for generateRssFeed logic is simple and uses the RSS package to simplify the process.
+The feed will simplify for others to know whenever there are any new articles out on your website.
+
+The two functions should be run at buildtime i ran into a world of trouble when trying to do this as a post/prebuild script.
+Thus i opted to do it by using nextjs getStaticProps() function which is ran during buildtime to generate static sites.
+Lets rewrite our index.tsx to create a landing page.
+Remove index.tsx located inside the pages folder and create a new index.mdx.
+
+```js
+//pages/index.tsx
+import { NextPage } from "next";
+import { Navigation } from "../components/navigation/navigation";
+import { getCategoriesWithMetaData, PostList } from "../components/util";
+import {
+  generateRssFeed,
+  generateSiteMap,
+} from "../components/util/generators";
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  generateSiteMap(categories);
+  generateRssFeed(categories);
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+const Home: NextPage<{ categories: PostList[] }> = ({ categories }) => {
+  return (
+    <div className="w-full grid grid-cols-mobile md:grid-cols-tablet lg:grid-cols-full gap-4 p-5 items-start">
+      <Navigation categories={categories} />
+      <article className=" rounded-xl p-5 prose  prose-custom prose-lg max-w-none">
+        <h1>Welcome to the blog!</h1>
+      </article>
+      <div className=" rounded-xl p-5 hidden md:block"> </div>
+    </div>
+  );
+};
+
+export default Home;
+```
+
+## {meta.headers[1]}
+
+Thats it we should now have a fully functional nextjs blog.
+Commands:
+- yarn run build - builds your website
+- yarn run start - serves the built website.
+- yarn run dev - runs dev server.
+
+Run yarn run build, wait while its building. Once finished a sitemap and a rss feed should have been generated automaticlly based on the meta data from your articles.
+To check whether you were successful or not go ahead and run the build command.
+Once its built run yarn run start or npm run start.
+Navigate to http://localhost:3000/rss.xml and http://localhost:3000/sitemap.xml
+Hopefull you found a xml document inside your browser window!
+Thats it you now have a functional blog written in nextjs.
+Now run along and improve this and start blogging yourself with your new nextjs blog 😄
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

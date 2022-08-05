@@ -18,11 +18,19 @@ export const SubMenu = ({
       <ul>
         {posts.map((post: PostDetails, i: number) => {
           const current = currentSubRoute === post.meta.slug;
+          console.log(decodeURI("/articles/" + name + "/" + post.slug));
           return (
-            <Link href={"/articles/" + name + "/" + post.slug} key={i}>
+            <Link
+              href={decodeURI("/articles/" + name + "/" + post.slug)}
+              key={i}
+            >
               <li key={name + "-" + post.slug}>
                 <label
-                  className={current ? " text-accent" : "hover:text-accent"}
+                  className={
+                    current
+                      ? "cursor-pointer text-accent"
+                      : "cursor-pointer hover:text-accent"
+                  }
                 >
                   {post.meta.metaTitle}
                 </label>
