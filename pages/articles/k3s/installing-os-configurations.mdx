@@ -13,7 +13,7 @@ export const meta = {
   tags: ["starting", "research", "software"],
   headers: [
     "Choosing and installing an OS",
-    "Inital configurations",
+    "Inital configurations for raspberry pie",
     "Setting up master",
     "Setting up each node",
   ],
@@ -31,15 +31,13 @@ export async function getStaticProps() {
   };
 }
 
-So after understanding what we are going to archive lts get started by setting up the rasberry pies.
+So after understanding what we are going to archive lets get started by setting up the rasberry pies.
 A quick summary of what has ty be done is the following:
 
 - Installing an operating system on each of the sub sticks.
-- Booting each rasberry pi from a stick.
 - Configuring and installing k3s on each rasberry pi.
 - Setup the master
 - Setup each node.
-- Setting up the harddrive for the cluster
 
 ## {meta.headers[0]}
 
@@ -49,20 +47,93 @@ A quick summary of what has ty be done is the following:
   width="100%"
   height="50%"
 />
+Start of by installing [Rasberry Pi Manager](https://www.raspberrypi.com/software/) on your desktop or laptop.
+For each rasberry pi's usb stick repeat the following process.
+Start of by insert the usb stick into preferably a usb 3 port.
+Hit the "CHOOSE OS" button and choose the os you want to use, i choose "Raspberry Pi OS (32-bit) Lite" which is a Debian based OS optimized for rasberry pi.
+The light version is a minimalist version which does not come with a desktop, perfect for us since we will be working through ssh anwyay.
+The last thing we want to do is to hit the cugwheel and setup SSH with username and password, a hostname and locales.
+- Check set hostname and write a hostname for ur pi.
+- Check Enable SSH and use the username and password.
+- Check Set username and password and type in a username and a password.
+- Check Set locale settings and enter the locale ur currently in.
+- Lastly scroll to the top and change from Image custimization options from: "for this session only" to "to allways use".
 
-The master node will be on 192.168.0.1 with hits nodes being on the addresses:
-
-- 192.168.0.2
-- 192.168.0.3
-- 192.168.0.4
-
-On 192.168.0.5 a 4rth rasberry pi will be located which hosts docker repository along other miscellaneous utilities, read more here.
+Then hit "CHOOSE STORAGE" and check the usb.
+Lastly hit write, give it a few minutes and then repeat the above process for each other raspberry pies usb, however change hostname.
 
 ## {meta.headers[1]}
+Insert the newly formated usb stick and hook up the raspberry pi with a internet and a power cable.
+Then open up a command prompt on your desktop/laptop and type ssh username@hostname enter the password in the prompt that pops up once you hit enter.
+### Configurations
+1. Enable container features
+```
+sudo vi /boot/cmd line.txt
+
+```
+Then enter the following at the end of the file: cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
+
+2. Switch Debian firewall to legacy
+
+```
+sudo update-alternatives — set iptables /usr/sbin/iptables-legacy
+sudo update-alternatives — set ip6tables /usr/sbin/ip6tables-legacy
+```
+If you get an error you might have to download the legacy by running the following "sudo apt-get install -y iptables arptables ebtables"
 
 ## {meta.headers[2]}
 
+ Choose one rasberry pi to be the master node and run the following on it.
+ Setting up the enviromental variables.
+ ```
+ export K3S_KUBECONFIG_MODE=”644"
+ ```
+ Installing k3s.
+```
+curl -sfL https://get.k3s.io | sh -
+```
+Grab the token from the master node needed to setup the worker nodes.
+```
+sudo cat /var/lib/rancher/k3s/server/node-token
+```
+Copy it to your clipboard.
+### Uninstalling Worker nodes
+Run the command below to uninstall k3s on the master node.
+```
+/usr/local/bin/k3s-uninstall.sh
+```
+
 ## {meta.headers[3]}
+
+Repeat the below process on each worker node.
+Setting up enviromental variables.
+"masternodeToken" is the token copied from the master node.
+"UrlToMasterNode" is the address to the master node. in my case 192.168.0.100.
+```
+export K3S_KUBECONFIG_MODE=”644"
+export K3S_URL=”https://AddressToMasterNode:6443"
+export K3S_TOKEN="masternodeToken"
+```
+Install k3s 
+```
+curl -sfL https://get.k3s.io | sh -
+```
+### Uninstalling Worker nodes
+Run the command below to uninstall k3s on a worker node.
+```
+/usr/local/bin/k3s-agent-uninstall.sh
+```
+
+## Connectiong Kubectl to the cluster
+
+
+
+## Wrapping up
+
+You should now have a cluster, check out that everything worked out with 
+```
+kubectl get nodes
+```
 
 export default ({ children, categories }) => (
   <ArticleLayout meta={meta} categories={categories}>

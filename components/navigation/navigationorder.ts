@@ -16,7 +16,11 @@ const navigationOrder: NavigationOrderType[] = [
   },
   {
     category: "k3s",
-    orderArticleList: ["a-starting-point", "installing-os-configurations"],
+    orderArticleList: [
+      "a-starting-point",
+      "installing-os-configurations",
+      "deploying-a-service",
+    ],
   },
   {
     category: "equipment",

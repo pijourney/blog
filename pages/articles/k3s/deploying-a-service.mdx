@@ -1,0 +1,44 @@
+import { ArticleLayout } from "../../../components/layout";
+import { getCategoriesWithMetaData } from "../../../components/util";
+import ExportedImage from "next-image-export-optimizer";
+
+export const meta = {
+  title: "Deploying a service",
+  metaTitle: "How to deploy a service on the pi cluster",
+  metaDesc: "How to deploy a service on the pi cluster!",
+  imgUrl: "/images/pidesign.svg",
+  imgAlt: "Deploying to cluster illustration",
+  date: "2022-08-30",
+  updatedAt: "2022-08-30",
+  tags: [
+    "rasberry pi",
+    "cluster",
+    "kuberntes",
+    "deploying",
+    "CD /CI ",
+    "Docker",
+    "helm"
+  ],
+  headers: [""],
+  slug: "a-starting-point",
+};
+
+# Deploying a service.
+
+export async function getStaticProps() {
+  const categories = await getCategoriesWithMetaData("./pages/articles/");
+  return {
+    props: {
+      categories,
+    },
+  };
+}
+
+
+
+
+export default ({ children, categories }) => (
+  <ArticleLayout meta={meta} categories={categories}>
+    {children}
+  </ArticleLayout>
+);

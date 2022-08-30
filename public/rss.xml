@@ -2,10 +2,10 @@
     <channel>
         <title><![CDATA[Pi journey articles]]></title>
         <description><![CDATA[Pi journey articles]]></description>
-        <link>http://localhost.com</link>
+        <link>http://localhost:3000</link>
         <generator>RSS for Node</generator>
-        <lastBuildDate>Fri, 05 Aug 2022 18:28:00 GMT</lastBuildDate>
-        <atom:link href="http://localhost.com/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Tue, 30 Aug 2022 16:34:17 GMT</lastBuildDate>
+        <atom:link href="http://localhost:3000/rss.xml" rel="self" type="application/rss+xml"/>
         <item>
             <title><![CDATA[Setting up Nextjs with TypeScript]]></title>
             <description><![CDATA[Setting up Nextjs with TypeScript, to enable our blog journey]]></description>
@@ -61,6 +61,13 @@
             <link>k3s/installing-os-configurations</link>
             <guid isPermaLink="true">k3s/installing-os-configurations</guid>
             <pubDate>Tue, 12 Jul 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Deploying a service]]></title>
+            <description><![CDATA[How to deploy a service on the pi cluster!]]></description>
+            <link>k3s/deploying-a-service</link>
+            <guid isPermaLink="true">k3s/deploying-a-service</guid>
+            <pubDate>Tue, 30 Aug 2022 00:00:00 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[Equipment and where to find it!]]></title>
