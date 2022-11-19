@@ -29,7 +29,9 @@ export const generateSiteMap = async (articles: PostList[]) => {
               .map(({ folder, posts }) => {
                 return posts
                   .map((post: PostDetails) => {
-                    const url = ("articles/" +
+                    const url = (baseUrl +
+                      "/" +
+                      "articles/" +
                       folder +
                       "/" +
                       post.slug) as string;
