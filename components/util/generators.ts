@@ -28,7 +28,10 @@ export const generateSiteMap = async (articles: PostList[]) => {
               ${articles
                 .map(({ folder, posts }) => {
                   return posts.map((post: PostDetails) => {
-                    const url = folder + "/" + post.slug;
+                    const url = ("articles/" +
+                      folder +
+                      "/" +
+                      post.slug) as string;
                     return returnXmlUrl(
                       url,
                       new Date(post.meta.updatedAt),
@@ -83,6 +86,5 @@ const returnXmlUrl = (
             <lastmod>${date.toISOString()}</lastmod>
             <changefreq>${change}</changefreq>
             <priority>${priority}</priority>
-        </url>
-    `;
+        </url>`;
 };
