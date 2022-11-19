@@ -1,4 +1,4 @@
-Sitemap: localhost/public/sitemap.xml 
+Sitemap: localhost/sitemap.xml 
 User-agent: * 
 Allow: /* 
 Disallow: /api/*

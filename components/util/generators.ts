@@ -2,7 +2,7 @@ import { readdirSync, writeFileSync } from "fs";
 import RSS from "rss";
 import { PostDetails, PostList } from "./types";
 const baseUrl = process.env.SITE_URL;
-const siteMapUrl = "public/sitemap.xml";
+const siteMapUrl = "sitemap.xml";
 const robotsText = `Sitemap: ${baseUrl}/${siteMapUrl} \nUser-agent: * \nAllow: /* \nDisallow: /api/*`;
 
 export const generateSiteMap = async (articles: PostList[]) => {
@@ -59,7 +59,12 @@ export const generateRssFeed = (articles: PostList[]) => {
   });
   articles.map(({ folder, posts }) => {
     return posts.forEach((post: PostDetails) => {
-      const url = folder + "/" + post.slug;
+      const url = (baseUrl +
+        "/" +
+        "articles/" +
+        folder +
+        "/" +
+        post.slug) as string;
       const meta = post.meta;
       feed.item({
         title: meta.title,
