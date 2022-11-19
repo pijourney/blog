@@ -19,28 +19,31 @@ export const generateSiteMap = async (articles: PostList[]) => {
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
         <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-            ${staticPages
-              .map((page) => {
-                const url = getUrl(page);
-                return returnXmlUrl(url, new Date(), "monthly", 1.0);
-              })
-              .join("")}
-              ${articles
-                .map(({ folder, posts }) => {
-                  return posts.map((post: PostDetails) => {
+          ${staticPages
+            .map((page) => {
+              const url = getUrl(page);
+              return returnXmlUrl(url, new Date(), "monthly", 1.0);
+            })
+            .join("")}
+            ${articles
+              .map(({ folder, posts }) => {
+                return posts
+                  .map((post: PostDetails) => {
                     const url = ("articles/" +
                       folder +
                       "/" +
                       post.slug) as string;
-                    return returnXmlUrl(
+                    var xml = returnXmlUrl(
                       url,
                       new Date(post.meta.updatedAt),
                       "monthly",
                       0.9
                     );
-                  });
-                })
-                .join("")}
+                    return xml;
+                  })
+                  .join("");
+              })
+              .join("")}
         </urlset>`;
   writeFileSync(siteMapUrl, sitemap);
   writeFileSync("public/robots.txt", robotsText);
@@ -86,5 +89,5 @@ const returnXmlUrl = (
             <lastmod>${date.toISOString()}</lastmod>
             <changefreq>${change}</changefreq>
             <priority>${priority}</priority>
-        </url>`;
+          </url>`;
 };

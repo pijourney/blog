@@ -18,7 +18,6 @@ export const SubMenu = ({
       <ul>
         {posts.map((post: PostDetails, i: number) => {
           const current = currentSubRoute === post.meta.slug;
-          console.log(decodeURI("/articles/" + name + "/" + post.slug));
           return (
             <Link
               href={decodeURI("/articles/" + name + "/" + post.slug)}
