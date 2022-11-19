@@ -63,10 +63,6 @@ export const generateRssFeed = (articles: PostList[]) => {
   });
   writeFileSync("./public/rss.xml", feed.xml({ indent: true }));
 };
-const getRobotText = (siteMapUrl: string) => {
-  const text = `Sitemap: ${baseUrl}/${siteMapUrl} \nUser-agent: * \nAllow: /* \nDisallow: /api/*`;
-  return text;
-};
 const getUrl = (page: string) => {
   const path = page
     .replace("pages/", "/")
